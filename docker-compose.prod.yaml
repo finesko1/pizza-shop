@@ -1,0 +1,66 @@
+services:
+    php-fpm-blue:
+        profiles: ["blue"]
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: production
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        stop_signal: SIGQUIT
+        stop_grace_period: 30s
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+        depends_on:
+            db:
+              condition: service_healthy
+        expose:
+            - "9000"
+
+    php-fpm-green:
+        profiles: ["green"]
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: production
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        stop_signal: SIGQUIT
+        stop_grace_period: 30s
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+        depends_on:
+            - db
+        expose:
+            - "9000"
+
+    artisan:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: production
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        working_dir: /var/www/html
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+        env_file:
+            - ./src/.env
+        depends_on:
+            db:
+                condition: service_healthy
+        profiles: [ "tools" ]
+        entrypoint: [ "php", "artisan" ]
+
+    db:
+        environment:
+            - POSTGRES_DB=${DB_DATABASE}
+            - POSTGRES_USER=${DB_USERNAME}
+            - POSTGRES_PASSWORD=${DB_PASSWORD}
+        deploy:
+            resources:
+                limits:
+                    memory: 2G

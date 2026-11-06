@@ -1,0 +1,33 @@
+services:
+  php-fpm-blue:
+    volumes: !reset []
+
+  php-fpm-green:
+    volumes: !reset [ ]
+
+  nginx:
+    image: nginx:${NGINX_VERSION:-1.30}-alpine
+    volumes:
+      - ./docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./docker/nginx/upstreams:/etc/nginx/upstreams
+    ports:
+      - "${NGINX_PORT:-8080}:80"
+    environment:
+      - NGINX_HOST=${NGINX_HOST}
+      - NGINX_PORT=${NGINX_PORT}
+
+  db:
+    image: postgres:${POSTGRES_VERSION}-alpine
+    environment:
+      - POSTGRES_DB=${DB_DATABASE:-laravel}
+      - POSTGRES_USER=${DB_USERNAME:-laravel}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-laravel} -d ${DB_DATABASE:-laravel}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+volumes:
+  postgres_data:
