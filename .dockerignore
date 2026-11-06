@@ -1,0 +1,27 @@
+# User-specific
+.git
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+
+# Local artifacts
+src/storage/logs/
+src/reports/
+src/storage/mysql-data/
+src/vendor/
+src/node_modules/
+src/.phpunit.cache
+src/.phpunit.result.cache
+src/.phpstorm.meta.php
+src/_ide_helper.php
+src/tools/*/vendor/
+
+# Исключаем кэш Laravel
+src/bootstrap/cache/*
+!src/bootstrap/cache/.gitignore
+
+# Docker-файлы compose
+compose-test-ci.yaml
+compose-staging.yaml
+compose-prod.yaml

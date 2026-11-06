@@ -1,0 +1,6 @@
+docker/nginx/upstreams/active.conf
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
