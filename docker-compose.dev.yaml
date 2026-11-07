@@ -1,0 +1,64 @@
+services:
+    php-fpm-green:
+        profiles: ["green"]
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: development
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        volumes:
+            - ./src:/var/www/html
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+        depends_on:
+            - db
+        expose:
+            - "9000"
+
+    php-fpm-blue:
+        profiles: ["blue"]
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: development
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        volumes:
+            - ./src:/var/www/html
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+        depends_on:
+            - db
+        expose:
+            - "9000"
+
+    artisan:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: development
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        volumes:
+            - ./src:/var/www/html
+        working_dir: /var/www/html
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+        env_file:
+            - ./src/.env
+        depends_on:
+            db:
+                condition: service_healthy
+        profiles: [ "tools" ]
+        entrypoint: [ "php", "artisan" ]
+
+    db:
+        ports:
+            - "${DB_PORT:-5432}:5432"
+        volumes:
+            - ./src/storage/database:/var/lib/postgresql/data
+        command: postgres -c fsync=off
