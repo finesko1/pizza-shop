@@ -133,8 +133,10 @@ dev-up: setup
 	@set -e; \
 	ACTIVE=$$(grep -oE 'blue|green' $(UPSTREAM_DIR)/active.conf 2>/dev/null | head -n1 || echo blue); \
 	echo ">>> [dev] Активный контейнер: $$ACTIVE"; \
-	echo ">>> [dev] Запускается: php-fpm-$$ACTIVE + зависимости..."; \
-	$(COMPOSE_DEV) --progress quiet --profile $$ACTIVE up -d; \
+	echo ">>> [dev] 1/2 Запуск php-fpm-$$ACTIVE и зависимостей..."; \
+	$(COMPOSE_DEV) --progress quiet --profile $$ACTIVE up -d php-fpm-$$ACTIVE; \
+	echo ">>> [dev] 2/2 Запуск nginx..."; \
+	$(COMPOSE_DEV) --progress quiet up -d nginx; \
 	echo ">>> [dev] Запуск завершён."; \
 	echo ">>> [dev] Приложение доступно: http://$${NGINX_HOST:-localhost}:$${NGINX_PORT:-8080}"
 
