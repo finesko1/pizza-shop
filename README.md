@@ -63,26 +63,27 @@ active.conf — локальное состояние каждого окруж�
 ## Переменные окружения
 ### Корневой .env (для compose)
 
-|Переменная| 	По умолчанию  |	Назначение|
-| - |-| - |
-|COMPOSE_PROJECT_NAME	| pizza-shop     |	префикс имён контейнеров|
-|PHP_VERSION | 8.4|	версия PHP в образе
-|NGINX_VERSION|	1.30|	версия nginx
-|NGINX_HOST|	localhost|	хост для URL в выводе up
-|NGINX_PORT|	8080|	порт на хосте
-|DB_DATABASE|	laravel|	имя БД
-|DB_USERNAME|	laravel|	пользователь БД
-|DB_PASSWORD|	currentPassword|	обязательно задать в prod
-|DB_PORT|	5432|	порт Postgres на хосте (dev)
+| Переменная            | 	По умолчанию    |	Назначение|
+|-----------------------|------------------| - |
+| PHP_VERSION           | 8.4              |	версия PHP в образе
+| NGINX_VERSION         | 	1.30            |	версия nginx
+| NGINX_HOST            | 	127.0.0.1       |	хост для URL в выводе up
+| NGINX_PORT            | 	8080            |	порт на хосте
+| POSTGRES_VERSION      | 	17              |	Версия PostgreSQL
+| DB_HOST               | 	127.0.0.1       |   хост Postgres (dev)
+| DB_PORT               | 	54321           |	порт Postgres на хосте (dev)
+| DB_DATABASE           | 	laravel         |	имя БД
+| DB_USERNAME           | 	root            |	пользователь БД
+| DB_PASSWORD           | 	currentPassword |	обязательно задать в prod
 
 ### src/.env (для Laravel)
-|Переменная| 	По умолчанию  |	Назначение|
-| - |-| - |
-|DB_HOST| db| имя сервиса в compose-сети. 127.0.0.1 не работает из контейнера.
-|DB_PORT| 5432| порт для доступа к базе данных, по умолчанию не используется
-|DB_DATABASE| laravel| название базы данных
-|DB_USERNAME| laravel| имя пользователя 
-|DB_PASSWORD| currentPassword| пароль 
+|Переменная| 	По умолчанию   |	Назначение|
+| - |-----------------| - |
+|DB_HOST| db              | имя сервиса в docker network
+|DB_PORT| 5432            | порт для доступа к базе данных в docker network 
+|DB_DATABASE| laravel         | название базы данных
+|DB_USERNAME| root            | имя пользователя 
+|DB_PASSWORD| currentPassword | пароль 
 
 ## Dev: типовые сценарии
 ```bash
