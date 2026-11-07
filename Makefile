@@ -10,10 +10,10 @@ COMPOSE_PROD = $(COMPOSE) $(DC_FILE) $(PROD_FILE)
 
 # Список команд
 .PHONY: help setup init-upstream reset-upstream \
-        dev-up dev-down dev-build dev-logs \
+        dev-setup dev-up dev-down dev-build dev-logs \
         prod-up prod-down prod-build prod-logs \
         deploy shell-prod migrate-prod rollback-prod art-prod \
-        build
+        migrate-dev rollback-dev art-dev build
 
 # Описание команд
 help:
@@ -29,6 +29,7 @@ help:
 	@echo "    make reset-upstream  - Сбросить active.conf на дефолт (blue)"
 	@echo ""
 	@echo "  Dev-окружение:"
+	@echo "    make dev-setup 		- Инициализировать приложение для первого запуска в dev"
 	@echo "    make dev-up          - Запустить dev-контейнеры (активный blue/green)"
 	@echo "    make dev-down        - Остановить и удалить dev-контейнеры"
 	@echo "    make dev-build       - Пересобрать dev-образы"
@@ -50,6 +51,13 @@ help:
 	@echo "    make shell-prod      - Зайти в shell контейнера artisan"
 	@echo "    make art-prod <cmd>  - Произвольная artisan-команда, например:"
 	@echo "                           make art-prod migrate:status"
+	@echo ""
+	@echo "  Artisan for development:"
+	@echo "    make migrate-dev     - Выполнить migrate --force"
+	@echo "    make rollback-dev    - Выполнить migrate:rollback --force"
+	@echo "    make shell-dev       - Зайти в shell контейнера artisan"
+	@echo "    make art-dev <cmd>   - Произвольная artisan-команда, например:"
+	@echo "                           make art-dev migrate:status"
 
 # Setup
 setup:
@@ -91,8 +99,8 @@ prod-up: init-upstream
 	@ACTIVE=$$(grep -oE 'blue|green' $(UPSTREAM_DIR)/active.conf 2>/dev/null | head -n1 || echo blue); \
 	echo ">>> [prod] Активный контейнер: $$ACTIVE"; \
 	echo ">>> [prod] Запускается: php-fpm-$$ACTIVE + зависимости..."; \
-	$(COMPOSE_PROD) --progress quiet --profile $$ACTIVE up -d; \
-	echo ">>> [prod] Запуск завершён."
+	$(COMPOSE_PROD) --progress quiet --profile $$ACTIVE up -d || exit 1;; \
+	echo ">>> [prod] Запуск завершён."; \
 	echo ">>> [prod] Приложение доступно: http://$${NGINX_HOST:-localhost}:$${NGINX_PORT:-8080}"
 
 prod-build: init-upstream
@@ -111,19 +119,31 @@ prod-logs:
 	@echo ">>> [prod] Логи prod (follow, tail=100). Ctrl+C для выхода."
 	$(COMPOSE_PROD) logs -f --tail=100
 
+# Development setup: установка зависимостей и миграции БД
+dev-setup: setup
+	@set -e; \
+	echo ">>> [dev-setup] Установка Composer-зависимостей..."; \
+	$(COMPOSE_DEV) --profile tools run --build --rm --entrypoint composer artisan install --no-interaction --prefer-dist; \
+	echo ">>> [dev-setup] Выполнение миграций Laravel..."; \
+	$(COMPOSE_DEV) --profile tools run --rm artisan migrate --force; \
+	echo ">>> [dev-setup] Первоначальная настройка завершена."
+
 # Development
 dev-up: setup
-	@ACTIVE=$$(grep -oE 'blue|green' $(UPSTREAM_DIR)/active.conf 2>/dev/null | head -n1 || echo blue); \
+	@set -e; \
+	ACTIVE=$$(grep -oE 'blue|green' $(UPSTREAM_DIR)/active.conf 2>/dev/null | head -n1 || echo blue); \
 	echo ">>> [dev] Активный контейнер: $$ACTIVE"; \
 	echo ">>> [dev] Запускается: php-fpm-$$ACTIVE + зависимости..."; \
 	$(COMPOSE_DEV) --progress quiet --profile $$ACTIVE up -d; \
-	echo ">>> [dev] Запуск завершён."
+	echo ">>> [dev] Запуск завершён."; \
 	echo ">>> [dev] Приложение доступно: http://$${NGINX_HOST:-localhost}:$${NGINX_PORT:-8080}"
 
 dev-build:
-	@echo ">>> [dev] Собираются dev-образы..."
-	$(COMPOSE_DEV) --progress quiet build
-	@echo ">>> [dev] Сборка завершена."
+	@ACTIVE=$$(grep -oE 'blue|green' $(UPSTREAM_DIR)/active.conf 2>/dev/null | head -n1 || echo blue); \
+	echo ">>> [dev] Активный контейнер: $$ACTIVE"; \
+	echo ">>> [dev] Собираются dev-образы..."; \
+	$(COMPOSE_DEV) --progress quiet --profile $$ACTIVE build || exit 1; \
+	echo ">>> [dev] Сборка завершена."
 
 dev-down:
 	@echo ">>> [dev] Останавливаются и удаляются все dev-контейнеры (включая профили)..."
@@ -180,12 +200,32 @@ art-prod:
 	@echo ">>> [artisan] Выполняется: $(filter-out $@,$(MAKECMDGOALS))"
 	@$(COMPOSE_PROD) --progress quiet --profile tools run --rm artisan $(filter-out $@,$(MAKECMDGOALS))
 
+# Artisan for development
+migrate-dev:
+	@echo ">>> [artisan] Применяются миграции: migrate --force..."
+	$(COMPOSE_DEV) --progress quiet --profile tools run --rm artisan migrate --force
+	@echo ">>> [artisan] Миграции применены."
+
+rollback-dev:
+	@echo ">>> [artisan] Откат миграций: migrate:rollback --force..."
+	$(COMPOSE_DEV) --progress quiet --profile tools run --rm artisan migrate:rollback --force
+	@echo ">>> [artisan] Откат выполнен."
+
+shell-dev:
+	@echo ">>> [artisan] Открывается shell в контейнере artisan (exit для выхода)..."
+	$(COMPOSE_DEV) --profile tools run --rm --entrypoint sh artisan
+
+# Произвольная artisan-команда
+art-dev:
+	@echo ">>> [artisan] Выполняется: $(filter-out $@,$(MAKECMDGOALS))"
+	@$(COMPOSE_DEV) --progress quiet --profile tools run --rm artisan $(filter-out $@,$(MAKECMDGOALS))
+
 # Общее
 build:
 	@echo ">>> Сборка всех образов (--no-cache)..."
 	$(COMPOSE) --progress quiet $(DC_FILE) build --no-cache
 	@echo ">>> Сборка завершена."
 
-# Поглотитель для произвольных аргументов art-prod
+# Поглотитель для произвольных аргументов art
 %:
 	@:
