@@ -16,8 +16,14 @@ RUN install-php-extensions \
     pcntl \
     redis
 
+COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Development
 FROM base AS development
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 RUN install-php-extensions xdebug
 RUN mv "$PHP_INI_DIR/php.ini-development"   "$PHP_INI_DIR/php.ini"
 COPY docker/php/conf.d/10-php-dev.ini       $PHP_INI_DIR/conf.d/app.ini
@@ -51,8 +57,6 @@ WORKDIR /var/www/html
 
 # Копируем ТОЛЬКО готовый результат из builder
 COPY --from=builder --chown=www-data:www-data /var/www/html /var/www/html
-COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 USER www-data

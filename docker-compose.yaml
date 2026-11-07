@@ -15,17 +15,18 @@ services:
     environment:
       - NGINX_HOST=${NGINX_HOST}
       - NGINX_PORT=${NGINX_PORT}
+    restart: on-failure
 
   db:
     image: postgres:${POSTGRES_VERSION}-alpine
     environment:
       - POSTGRES_DB=${DB_DATABASE:-laravel}
-      - POSTGRES_USER=${DB_USERNAME:-laravel}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
+      - POSTGRES_USER=${DB_USERNAME:-root}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-currentPassword}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-laravel} -d ${DB_DATABASE:-laravel}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-root} -d ${DB_DATABASE:-laravel}" ]
       interval: 5s
       timeout: 3s
       retries: 5
