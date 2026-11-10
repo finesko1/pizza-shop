@@ -6,6 +6,12 @@
 .DS_Store
 
 # Local artifacts
+src/.env
+src/.env.*
+!src/.env.example
+**/.env
+**/.env.*
+!**/.env.example
 src/storage/logs/
 src/reports/
 src/storage/mysql-data/
