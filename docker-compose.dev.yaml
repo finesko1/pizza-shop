@@ -43,6 +43,12 @@ services:
 
     artisan:
         image: app-dev:latest
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: development
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
         volumes:
             - ./src:/var/www/html
         working_dir: /var/www/html
