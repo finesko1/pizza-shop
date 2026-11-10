@@ -7,6 +7,9 @@ ACTIVE_FILE      := $(UPSTREAM_DIR)/active.conf
 DEFAULT_UPSTREAM := server php-fpm-blue:9000;
 COMPOSE_DEV = $(COMPOSE) $(DC_FILE) $(DEV_FILE)
 COMPOSE_PROD = $(COMPOSE) $(DC_FILE) $(PROD_FILE)
+define app_url
+	$(shell $(1) config 2>/dev/null | awk '/NGINX_HOST:/{h=$$2} /NGINX_PORT:/{p=$$2} END{print "http://" (h?h:"localhost") ":" (p?p:"8080")}')
+endef
 
 # Список команд
 .PHONY: help setup init-upstream reset-upstream \
@@ -29,6 +32,7 @@ help:
 	@echo "    make reset-upstream  - Сбросить active.conf на дефолт (blue)"
 	@echo ""
 	@echo "  Dev-окружение:"
+	@echo "	   make dev-init 		- Первый запуск приложения в dev"
 	@echo "    make dev-setup 		- Инициализировать приложение для первого запуска в dev"
 	@echo "    make dev-up          - Запустить dev-контейнеры (активный blue/green)"
 	@echo "    make dev-down        - Остановить и удалить dev-контейнеры"
@@ -93,15 +97,15 @@ reset-upstream:
 	@cat $(ACTIVE_FILE)
 
 # Production
-prod-up: init-upstream
-	@if [ ! -f .env ]; then echo ">>> [prod] .env не найден. Создайте его из .env.example и заполните секреты."; exit 1; fi
-	@if [ ! -f src/.env ]; then echo ">>> [prod] src/.env не найден."; exit 1; fi
+prod-up: init-upstream prod-env-check
+	@if [ ! -f .env ]; then ...; fi
+	@if [ ! -f src/.env ]; then ...; fi
 	@ACTIVE=$$(grep -oE 'blue|green' $(UPSTREAM_DIR)/active.conf 2>/dev/null | head -n1 || echo blue); \
 	echo ">>> [prod] Активный контейнер: $$ACTIVE"; \
 	echo ">>> [prod] Запускается: php-fpm-$$ACTIVE + зависимости..."; \
-	$(COMPOSE_PROD) --progress quiet --profile $$ACTIVE up -d || exit 1;; \
+	$(COMPOSE_PROD) --progress quiet --profile $$ACTIVE up -d || exit 1; \
 	echo ">>> [prod] Запуск завершён."; \
-	echo ">>> [prod] Приложение доступно: http://$${NGINX_HOST:-localhost}:$${NGINX_PORT:-8080}"
+	echo ">>> [prod] Приложение доступно: $(call app_url,$(COMPOSE_PROD))"
 
 prod-build: init-upstream
 	@ACTIVE=$$(grep -oE 'blue|green' $(UPSTREAM_DIR)/active.conf 2>/dev/null | head -n1 || echo blue); \
@@ -119,7 +123,7 @@ prod-logs:
 	@echo ">>> [prod] Логи prod (follow, tail=100). Ctrl+C для выхода."
 	$(COMPOSE_PROD) logs -f --tail=100
 
-# Development setup: установка зависимостей и миграции БД
+# Development
 dev-setup: setup
 	@set -e; \
 	echo ">>> [dev-setup] Установка Composer-зависимостей..."; \
@@ -128,7 +132,6 @@ dev-setup: setup
 	$(COMPOSE_DEV) --profile tools run --rm artisan migrate --force; \
 	echo ">>> [dev-setup] Первоначальная настройка завершена."
 
-# Development
 dev-up: setup
 	@set -e; \
 	ACTIVE=$$(grep -oE 'blue|green' $(UPSTREAM_DIR)/active.conf 2>/dev/null | head -n1 || echo blue); \
@@ -138,7 +141,10 @@ dev-up: setup
 	echo ">>> [dev] 2/2 Запуск nginx..."; \
 	$(COMPOSE_DEV) --progress quiet up -d nginx; \
 	echo ">>> [dev] Запуск завершён."; \
-	echo ">>> [dev] Приложение доступно: http://$${NGINX_HOST:-localhost}:$${NGINX_PORT:-8080}"
+	echo ">>> [dev] Приложение доступно: $(call app_url,$(COMPOSE_DEV))"
+
+dev-init: dev-setup dev-up
+	@echo ">>> [dev-init] Готово. Приложение запущено."
 
 dev-build:
 	@ACTIVE=$$(grep -oE 'blue|green' $(UPSTREAM_DIR)/active.conf 2>/dev/null | head -n1 || echo blue); \
