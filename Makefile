@@ -13,7 +13,7 @@ endef
 
 # Список команд
 .PHONY: help setup init-upstream reset-upstream \
-        dev-setup dev-up dev-down dev-build dev-logs \
+        dev-init dev-setup dev-up dev-down dev-build dev-logs \
         prod-up prod-down prod-build prod-logs \
         deploy shell-prod migrate-prod rollback-prod art-prod \
         migrate-dev rollback-dev art-dev build
@@ -127,7 +127,7 @@ prod-logs:
 dev-setup: setup
 	@set -e; \
 	echo ">>> [dev-setup] Установка Composer-зависимостей..."; \
-	$(COMPOSE_DEV) --profile tools run --build --rm --entrypoint composer artisan install --no-interaction --prefer-dist; \
+	$(COMPOSE_DEV) --profile tools run --rm --entrypoint composer artisan install --no-interaction --prefer-dist; \
 	echo ">>> [dev-setup] Выполнение миграций Laravel..."; \
 	$(COMPOSE_DEV) --profile tools run --rm artisan migrate --force; \
 	echo ">>> [dev-setup] Первоначальная настройка завершена."
