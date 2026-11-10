@@ -9,12 +9,8 @@ prod для production-сборки. Управление — через Makefil
 git clone https://github.com/finesko1/pizza-shop pizza-shop
 cd pizza-shop
 
-# 2. Установить зависимости для первого запуска
-make dev-setup
-
-# 3. Запустить приложение
-# Приложение доступно по адресу из вывода, по умолчанию: http://localhost:8080
-make dev-up
+# 2. Установить зависимости и запустить приложение
+make dev-init
 ```
 
 **Важно**:
