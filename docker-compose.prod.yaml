@@ -1,6 +1,7 @@
 services:
     php-fpm-blue:
         profiles: ["blue"]
+        image: app-prod:${RELEASE_TAG:-latest}
         build:
             context: .
             dockerfile: docker/php/Dockerfile
@@ -9,6 +10,8 @@ services:
                 PHP_VERSION: ${PHP_VERSION:-8.4}
         stop_signal: SIGQUIT
         stop_grace_period: 30s
+        env_file:
+            - ./src/.env
         environment:
             - APP_ENV=production
             - APP_DEBUG=false
@@ -20,6 +23,7 @@ services:
 
     php-fpm-green:
         profiles: ["green"]
+        image: app-prod:${RELEASE_TAG:-latest}
         build:
             context: .
             dockerfile: docker/php/Dockerfile
@@ -28,6 +32,8 @@ services:
                 PHP_VERSION: ${PHP_VERSION:-8.4}
         stop_signal: SIGQUIT
         stop_grace_period: 30s
+        env_file:
+            - ./src/.env
         environment:
             - APP_ENV=production
             - APP_DEBUG=false
@@ -37,12 +43,7 @@ services:
             - "9000"
 
     artisan:
-        build:
-            context: .
-            dockerfile: docker/php/Dockerfile
-            target: production
-            args:
-                PHP_VERSION: ${PHP_VERSION:-8.4}
+        image: app-prod:${RELEASE_TAG:-latest}
         working_dir: /var/www/html
         environment:
             - APP_ENV=production
@@ -54,6 +55,18 @@ services:
                 condition: service_healthy
         profiles: [ "tools" ]
         entrypoint: [ "php", "artisan" ]
+
+    nginx:
+        image: app-nginx:${RELEASE_TAG:-latest}
+        build:
+            context: .
+            dockerfile: docker/nginx/Dockerfile
+            args:
+                NGINX_VERSION: ${NGINX_VERSION:-1.30}
+                RELEASE_IMAGE: app-prod:${RELEASE_TAG:-latest}
+        volumes:
+            - ./docker/nginx/upstreams:/etc/nginx/upstreams
+        restart: unless-stopped
 
     db:
         ports: !reset []

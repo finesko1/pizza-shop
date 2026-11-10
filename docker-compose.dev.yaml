@@ -1,6 +1,7 @@
 services:
     php-fpm-green:
         profiles: ["green"]
+        image: app-dev:latest
         build:
             context: .
             dockerfile: docker/php/Dockerfile
@@ -9,6 +10,8 @@ services:
                 PHP_VERSION: ${PHP_VERSION:-8.4}
         volumes:
             - ./src:/var/www/html
+        env_file:
+            - ./src/.env
         environment:
             - APP_ENV=local
             - APP_DEBUG=true
@@ -19,6 +22,7 @@ services:
 
     php-fpm-blue:
         profiles: ["blue"]
+        image: app-dev:latest
         build:
             context: .
             dockerfile: docker/php/Dockerfile
@@ -27,6 +31,8 @@ services:
                 PHP_VERSION: ${PHP_VERSION:-8.4}
         volumes:
             - ./src:/var/www/html
+        env_file:
+            - ./src/.env
         environment:
             - APP_ENV=local
             - APP_DEBUG=true
@@ -36,12 +42,7 @@ services:
             - "9000"
 
     artisan:
-        build:
-            context: .
-            dockerfile: docker/php/Dockerfile
-            target: development
-            args:
-                PHP_VERSION: ${PHP_VERSION:-8.4}
+        image: app-dev:latest
         volumes:
             - ./src:/var/www/html
         working_dir: /var/www/html
@@ -55,6 +56,13 @@ services:
                 condition: service_healthy
         profiles: [ "tools" ]
         entrypoint: [ "php", "artisan" ]
+
+    nginx:
+        image: nginx:${NGINX_VERSION:-1.30}-alpine
+        volumes:
+            - ./docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+            - ./docker/nginx/upstreams:/etc/nginx/upstreams
+            - ./src/public:/var/www/html/public:ro
 
     db:
         ports:

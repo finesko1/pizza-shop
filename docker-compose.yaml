@@ -6,10 +6,6 @@ services:
     volumes: !reset [ ]
 
   nginx:
-    image: nginx:${NGINX_VERSION:-1.30}-alpine
-    volumes:
-      - ./docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
-      - ./docker/nginx/upstreams:/etc/nginx/upstreams
     ports:
       - "${NGINX_PORT:-8080}:80"
     environment:
