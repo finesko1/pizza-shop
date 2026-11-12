@@ -1,0 +1,78 @@
+services:
+    php-fpm-green:
+        profiles: ["green"]
+        image: app-dev:latest
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: development
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        volumes:
+            - ./src:/var/www/html
+        env_file:
+            - ./src/.env
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+        depends_on:
+            - db
+        expose:
+            - "9000"
+
+    php-fpm-blue:
+        profiles: ["blue"]
+        image: app-dev:latest
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: development
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        volumes:
+            - ./src:/var/www/html
+        env_file:
+            - ./src/.env
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+        depends_on:
+            - db
+        expose:
+            - "9000"
+
+    artisan:
+        image: app-dev:latest
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: development
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        volumes:
+            - ./src:/var/www/html
+        working_dir: /var/www/html
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+        env_file:
+            - ./src/.env
+        depends_on:
+            db:
+                condition: service_healthy
+        profiles: [ "tools" ]
+        entrypoint: [ "php", "artisan" ]
+
+    nginx:
+        image: nginx:${NGINX_VERSION:-1.30}-alpine
+        volumes:
+            - ./docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+            - ./docker/nginx/upstreams:/etc/nginx/upstreams
+            - ./src/public:/var/www/html/public:ro
+
+    db:
+        ports:
+            - "${DB_PORT:-5432}:5432"
+        volumes:
+            - ./src/storage/database:/var/lib/postgresql/data
+        command: postgres -c fsync=off

@@ -1,0 +1,80 @@
+services:
+    php-fpm-blue:
+        profiles: ["blue"]
+        image: app-prod:${RELEASE_TAG:-latest}
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: production
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        stop_signal: SIGQUIT
+        stop_grace_period: 30s
+        env_file:
+            - ./src/.env
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+        depends_on:
+            db:
+                condition: service_healthy
+        expose:
+            - "9000"
+
+    php-fpm-green:
+        profiles: ["green"]
+        image: app-prod:${RELEASE_TAG:-latest}
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: production
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        stop_signal: SIGQUIT
+        stop_grace_period: 30s
+        env_file:
+            - ./src/.env
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+        depends_on:
+            - db
+        expose:
+            - "9000"
+
+    artisan:
+        image: app-prod:${RELEASE_TAG:-latest}
+        working_dir: /var/www/html
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+        env_file:
+            - ./src/.env
+        depends_on:
+            db:
+                condition: service_healthy
+        profiles: [ "tools" ]
+        entrypoint: [ "php", "artisan" ]
+
+    nginx:
+        image: app-nginx:${RELEASE_TAG:-latest}
+        build:
+            context: .
+            dockerfile: docker/nginx/Dockerfile
+            args:
+                NGINX_VERSION: ${NGINX_VERSION:-1.30}
+                RELEASE_IMAGE: app-prod:${RELEASE_TAG:-latest}
+        volumes:
+            - ./docker/nginx/upstreams:/etc/nginx/upstreams
+        restart: unless-stopped
+
+    db:
+        ports: !reset []
+        environment:
+            - POSTGRES_DB=${DB_DATABASE}
+            - POSTGRES_USER=${DB_USERNAME}
+            - POSTGRES_PASSWORD=${DB_PASSWORD}
+        deploy:
+            resources:
+                limits:
+                    memory: 2G
