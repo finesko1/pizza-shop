@@ -6,12 +6,15 @@ use App\Http\Requests\ProductPaginationRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
+use App\Models\Helpers\ValidatesBigIntRouteBinding;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
 class ProductController extends Controller
 {
+    use ValidatesBigIntRouteBinding;
+
     /**
      * GET /api/products
      *
@@ -22,9 +25,10 @@ class ProductController extends Controller
 
         $products = Product::query()
             ->paginate(
-                perPage: $pagination['limit'],
-                page: $pagination['page'],
-            );
+                perPage: $pagination['limit'] ?? 5,
+                page: $pagination['page'] ?? 1,
+            )
+            ->appends(['limit' => $pagination['limit'] ?? 5]);
 
         return ProductResource::collection($products)->response();
     }
@@ -37,7 +41,7 @@ class ProductController extends Controller
     {
         $product = Product::create($request->validated());
 
-        return (new ProductResource($product))
+        return new ProductResource($product)
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
     }

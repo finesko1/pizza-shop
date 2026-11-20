@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ProductCategoryEnum;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class ProductFactory extends Factory
 {
     /**
-     * Define the model's default state.
+     * Создание фикстуры Product
      *
      * @return array<string, mixed>
      */
@@ -20,11 +21,9 @@ class ProductFactory extends Factory
         return [
             'name' => ucfirst($this->faker->words(3, true)),
             'description' => $this->faker->boolean(80) ? $this->faker->paragraph(): null,
-            'price' => $this->faker->numberBetween(100_00, 100_000_00),
-            'weight' => $this->faker->numberBetween(50, 50_000),
-            'category' => $this->faker->randomElement([
-                'Электроника', 'Одежда', 'Продукты', 'Мебель', 'Книги'
-            ]),
+            'price' => $this->faker->numberBetween(100_00, Product::PRICE_MAX),
+            'weight' => $this->faker->numberBetween(100, Product::WEIGHT_MAX),
+            'category' => $this->faker->randomElement(ProductCategoryEnum::cases()),
         ];
     }
 }
