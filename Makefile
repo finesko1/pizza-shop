@@ -1,12 +1,14 @@
 COMPOSE   = docker compose
 DC_FILE   = -f docker-compose.yaml
-DEV_FILE  = -f docker-compose.dev.yaml
 PROD_FILE = -f docker-compose.prod.yaml
+DEV_FILE  = -f docker-compose.dev.yaml
+TEST_FILE = -f docker-compose.test.yaml
 UPSTREAM_DIR     := ./docker/nginx/upstreams
 ACTIVE_FILE      := $(UPSTREAM_DIR)/active.conf
 DEFAULT_UPSTREAM := server php-fpm-blue:9000;
 COMPOSE_DEV = $(COMPOSE) $(DC_FILE) $(DEV_FILE)
 COMPOSE_PROD = $(COMPOSE) $(DC_FILE) $(PROD_FILE)
+COMPOSE_TEST = $(COMPOSE) $(TEST_FILE)
 define app_url
 	$(shell $(1) config 2>/dev/null | awk '/NGINX_HOST:/{h=$$2} /NGINX_PORT:/{p=$$2} END{print "http://" (h?h:"localhost") ":" (p?p:"8080")}')
 endef
@@ -16,7 +18,8 @@ endef
         dev-init dev-setup dev-up dev-down dev-build dev-logs \
         prod-up prod-down prod-build prod-logs \
         deploy shell-prod migrate-prod rollback-prod art-prod \
-        migrate-dev rollback-dev art-dev build
+        migrate-dev rollback-dev art-dev build \
+        test test-build test-unit test-feature test-prepare
 
 # Описание команд
 help:
@@ -62,6 +65,15 @@ help:
 	@echo "    make shell-dev       - Зайти в shell контейнера artisan"
 	@echo "    make art-dev <cmd>   - Произвольная artisan-команда, например:"
 	@echo "                           make art-dev migrate:status"
+	@echo ""
+	@echo "  Application testing:"
+	@echo "    make test-init     	- Сборка и запуск тестов"
+	@echo "    make test     		- Feature и Unit тесты"
+	@echo "    make test-build     	- Сборка образа"
+	@echo "    make test-unit     	- Unit тесты"
+	@echo "    make test-feature    - Feature тесты"
+	@echo "    make test-filter 	- Отдельный тест: make test-filter FILTER=CurrentTest"
+	@echo "	   make test-clean		- Завершение тестирования"
 
 # Setup
 setup:
@@ -227,6 +239,48 @@ shell-dev:
 art-dev:
 	@echo ">>> [artisan] Выполняется: $(filter-out $@,$(MAKECMDGOALS))"
 	@$(COMPOSE_DEV) --progress quiet --profile tools run --rm artisan $(filter-out $@,$(MAKECMDGOALS))
+
+# Testing
+test-prepare:
+	@echo ">>> [test] 1/5 Проверка .env..."
+	@if [ ! -f src/.env ]; then \
+		cp src/.env.example src/.env; \
+		echo ">>> [test] src/.env создан из .env.example"; \
+	fi
+	@echo ">>> [test] 2/5 Сборка образа artisan (кэш)..."
+	@$(COMPOSE_TEST) build artisan
+	@echo ">>> [test] 3/5 composer install (no-op при наличии vendor)..."
+	@$(COMPOSE_TEST) run --rm --entrypoint composer artisan install \
+		--no-interaction --prefer-dist --no-progress
+	@echo ">>> [test] 4/5 Проверка APP_KEY..."
+	@if ! grep -qE '^APP_KEY=base64:.+' src/.env; then \
+		$(COMPOSE_TEST) run --rm artisan key:generate --force --no-interaction; \
+		echo ">>> [test] APP_KEY сгенерирован"; \
+	fi
+	@echo ">>> [test] 5/5 Миграции..."
+	@$(COMPOSE_TEST) run --rm artisan migrate --force --no-interaction
+	@echo ">>> [test] Подготовка завершена."
+
+test-init: test-prepare
+	$(COMPOSE_TEST) run --rm artisan test
+
+test-build:
+	$(COMPOSE_TEST) build artisan
+
+test:
+	$(COMPOSE_TEST) run --rm artisan test
+
+test-unit:
+	$(COMPOSE_TEST) run --rm artisan test --testsuite=Unit
+
+test-feature:
+	$(COMPOSE_TEST) run --rm artisan test --testsuite=Feature
+
+test-filter:
+	$(COMPOSE_TEST) run --rm artisan test --filter=$(FILTER)
+
+test-clean:
+	$(COMPOSE_TEST) down -v
 
 # Общее
 build:
