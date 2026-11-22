@@ -101,6 +101,21 @@ php artisan test --stop-on-failure
 
 ---
 
+## Стиль кода
+
+Код проверяется **PHP CS Fixer** со стандартом **PHPyhCodingStandard**
+(конфиг — `src/.php-cs-fixer.dist.php`). Команды выполняются в dev-контейнере:
+
+```bash
+make cs       # проверить стиль (ничего не меняет)
+make cs-fix   # автоматически исправить
+```
+
+Скрипты продублированы в `src/composer.json` (`composer cs` / `composer cs:fix`),
+поэтому их можно запускать и напрямую на хосте, если установлены PHP и Composer.
+
+---
+
 ## JWT
 
 Секрет хранится в `src/.env` (`JWT_SECRET`), время жизни — `JWT_TTL`, refresh — `JWT_REFRESH_TTL`.

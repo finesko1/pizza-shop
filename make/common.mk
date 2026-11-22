@@ -25,7 +25,7 @@ endef
         deploy shell-prod \
         shell-dev build \
         test test-init test-build test-prepare test-clean shell-test \
-        jwt-check jwt-generate
+        jwt-check jwt-generate cs cs-fix
 
 # Описание команд
 help:
@@ -69,6 +69,10 @@ help:
 	@echo "    make test     		- Feature и Unit тесты"
 	@echo "    make test-build     	- Сборка образа"
 	@echo "	   make test-clean		- Завершение тестирования"
+	@echo ""
+	@echo "  Качество кода:"
+	@echo "    make cs              - Проверить стиль кода (composer cs)"
+	@echo "    make cs-fix          - Исправить стиль кода (composer cs:fix)"
 	@echo ""
 	@echo "    make jwt-generate    - сгенерировать JWT_SECRET (спросит подтверждение, если текущий корректен)"
 	@echo "	   make jwt-check   	- проверка токена"

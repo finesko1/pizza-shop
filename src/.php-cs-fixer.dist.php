@@ -1,0 +1,17 @@
+<?php declare(strict_types=1);
+
+use PHPyh\CodingStandard\PhpCsFixerCodingStandard;
+
+$finder = (new PhpCsFixer\Finder())
+    ->in(__DIR__)
+    ->exclude(['vendor', 'node_modules', 'storage', 'bootstrap/cache', 'public/build'])
+    ->notPath('_ide_helper.php');
+
+$config = (new PhpCsFixer\Config())
+    ->setCacheFile(__DIR__ . '/.php-cs-fixer.cache')
+    ->setUnsupportedPhpVersionAllowed(true) // или поднять php до ^8.4
+    ->setFinder($finder);
+
+(new PhpCsFixerCodingStandard())->applyTo($config);
+
+return $config;
