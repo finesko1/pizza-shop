@@ -1,3 +1,5 @@
+name: pizza-shop-test
+
 services:
     artisan:
         image: app-dev:latest
@@ -14,6 +16,16 @@ services:
             - ./src/.env
         environment:
             - APP_ENV=testing
+            - DB_CONNECTION=pgsql
+            - DB_HOST=db-test
+            - DB_PORT=5432
+            - DB_DATABASE=pizza_shop_test
+            - DB_USERNAME=${DB_USERNAME:-root}
+            - DB_PASSWORD=${DB_PASSWORD:-currentPassword}
+            - SESSION_DRIVER=array
+            - CACHE_STORE=array
+            - QUEUE_CONNECTION=sync
+            - MAIL_MAILER=array
         depends_on:
             db-test:
                 condition: service_healthy
