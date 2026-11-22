@@ -27,9 +27,9 @@ final class ProductController extends Controller
                 perPage: $pagination['limit'] ?? 5,
                 page: $pagination['page'] ?? 1,
             )
-            ->appends(['limit' => $pagination['limit'] ?? 5]);
+            ->appends(key: ['limit' => $pagination['limit'] ?? 5]);
 
-        return ProductResource::collection($products)->response();
+        return ProductResource::collection(resource: $products)->response();
     }
 
     /**
@@ -39,9 +39,9 @@ final class ProductController extends Controller
     {
         $product = Product::create($request->validated());
 
-        return new ProductResource($product)
+        return new ProductResource(resource: $product)
             ->response()
-            ->setStatusCode(Response::HTTP_CREATED);
+            ->setStatusCode(code: Response::HTTP_CREATED);
     }
 
     /**
@@ -49,7 +49,7 @@ final class ProductController extends Controller
      */
     public function show(Product $product): JsonResponse
     {
-        return new ProductResource($product)->response();
+        return new ProductResource(resource: $product)->response();
     }
 
     /**
@@ -57,9 +57,9 @@ final class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
-        $product->update($request->validated());
+        $product->update(attributes: $request->validated());
 
-        return new ProductResource($product)->response();
+        return new ProductResource(resource: $product)->response();
     }
 
     /**

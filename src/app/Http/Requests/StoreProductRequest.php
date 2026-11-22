@@ -25,7 +25,7 @@ final class StoreProductRequest extends PublicFormRequest
             'description'   => ['nullable', 'string'],
             'price'         => ['required', 'integer:strict', 'min:0', 'max:' . Product::PRICE_MAX],
             'weight'        => ['required', 'integer:strict', 'min:0', 'max:' . Product::WEIGHT_MAX],
-            'category'      => ['required', 'string', Rule::enum(ProductCategoryEnum::class)],
+            'category'      => ['required', 'string', Rule::enum(type: ProductCategoryEnum::class)],
         ];
     }
 }

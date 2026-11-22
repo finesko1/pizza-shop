@@ -25,10 +25,10 @@ final class ProductControllerTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('meta.total', 8)
-            ->assertJsonPath('meta.per_page', 2)
-            ->assertJsonPath('meta.current_page', 1)
+            ->assertJsonCount(count: 2, key: 'data')
+            ->assertJsonPath(path: 'meta.total', expect: 8)
+            ->assertJsonPath(path: 'meta.per_page', expect: 2)
+            ->assertJsonPath(path: 'meta.current_page', expect: 1)
             ->assertJsonStructure([
                 'data' => [
                     '*' => ['id', 'name', 'description', 'price', 'weight', 'category'],
@@ -43,7 +43,7 @@ final class ProductControllerTest extends TestCase
     {
         $this->getJson('/api/products?limit=-10&page=abc')
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['limit', 'page']);
+            ->assertJsonValidationErrors(errors: ['limit', 'page']);
     }
 
     // POST /api/products (store)
@@ -57,11 +57,11 @@ final class ProductControllerTest extends TestCase
 
         $response
             ->assertCreated()
-            ->assertJsonPath('data.name', $payload['name'])
-            ->assertJsonPath('data.description', $payload['description'])
-            ->assertJsonPath('data.price', $payload['price'])
-            ->assertJsonPath('data.weight', $payload['weight'])
-            ->assertJsonPath('data.category', $payload['category']);
+            ->assertJsonPath(path: 'data.name', expect: $payload['name'])
+            ->assertJsonPath(path: 'data.description', expect: $payload['description'])
+            ->assertJsonPath(path: 'data.price', expect: $payload['price'])
+            ->assertJsonPath(path: 'data.weight', expect: $payload['weight'])
+            ->assertJsonPath(path: 'data.category', expect: $payload['category']);
 
         $this->assertDatabaseHas('products', $payload);
     }
@@ -74,7 +74,7 @@ final class ProductControllerTest extends TestCase
         $this->withToken($token)
             ->postJson('/api/products', ProductPayload::invalid())
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['name', 'price', 'weight', 'category']);
+            ->assertJsonValidationErrors(errors: ['name', 'price', 'weight', 'category']);
 
         $this->assertDatabaseCount('products', 0);
     }
@@ -88,12 +88,12 @@ final class ProductControllerTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonPath('data.id', $product->id)
-            ->assertJsonPath('data.name', $product->name)
-            ->assertJsonPath('data.description', $product->description)
-            ->assertJsonPath('data.price', $product->price)
-            ->assertJsonPath('data.weight', $product->weight)
-            ->assertJsonPath('data.category', $product->category->value);
+            ->assertJsonPath(path: 'data.id', expect: $product->id)
+            ->assertJsonPath(path: 'data.name', expect: $product->name)
+            ->assertJsonPath(path: 'data.description', expect: $product->description)
+            ->assertJsonPath(path: 'data.price', expect: $product->price)
+            ->assertJsonPath(path: 'data.weight', expect: $product->weight)
+            ->assertJsonPath(path: 'data.category', expect: $product->category->value);
     }
 
     // GET /api/products/{product} (show)
@@ -125,10 +125,10 @@ final class ProductControllerTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonPath('data.id', $product->id)
-            ->assertJsonPath('data.name', $payload['name'])
-            ->assertJsonPath('data.price', $payload['price'])
-            ->assertJsonPath('data.weight', $payload['weight']);
+            ->assertJsonPath(path: 'data.id', expect: $product->id)
+            ->assertJsonPath(path: 'data.name', expect: $payload['name'])
+            ->assertJsonPath(path: 'data.price', expect: $payload['price'])
+            ->assertJsonPath(path: 'data.weight', expect: $payload['weight']);
 
         $this->assertDatabaseHas('products', ['id' => $product->id] + $payload);
     }
@@ -147,7 +147,7 @@ final class ProductControllerTest extends TestCase
         $this->withToken($token)
             ->patchJson("/api/products/{$product->id}", ['price' => -1])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['price']);
+            ->assertJsonValidationErrors(errors: ['price']);
     }
 
     // POST/PATCH/DELETE /api/products/{product} (update)
@@ -222,7 +222,7 @@ final class ProductControllerTest extends TestCase
     #[DataProvider('provideAuthorizedUserCanReadProductsCatalogCases')]
     public function testAuthorizedUserCanReadProductsCatalog(UserRoleEnum $role): void
     {
-        $token = $this->tokenFor(User::factory()->create(['role' => $role]));
+        $token = $this->tokenFor(User::factory()->create(attributes: ['role' => $role]));
         $product = Product::factory()->pepperoni()->create();
 
         $this->withToken($token)
@@ -249,7 +249,7 @@ final class ProductControllerTest extends TestCase
     #[DataProvider('provideUserAndGuestCantEditProductsCatalogCases')]
     public function testUserAndGuestCantEditProductsCatalog(UserRoleEnum $role): void
     {
-        $token = $this->tokenFor(User::factory()->create(['role' => $role]));
+        $token = $this->tokenFor(User::factory()->create(attributes: ['role' => $role]));
         $product = Product::factory()->pepperoni()->create();
 
         $this->withToken($token) // store
@@ -304,7 +304,7 @@ final class ProductControllerTest extends TestCase
         $this->withToken('not-a-jwt')
             ->postJson('/api/products', ProductPayload::pepperoni())
             ->assertUnauthorized()
-            ->assertJsonPath('message', 'Unauthenticated.');
+            ->assertJsonPath(path: 'message', expect: 'Unauthenticated.');
 
         $this->assertDatabaseCount('products', 0);
     }
@@ -313,7 +313,7 @@ final class ProductControllerTest extends TestCase
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
 
-        [$header, $payload, $signature] = explode('.', $token);
+        [$header, $payload, $signature] = explode(separator: '.', string: $token);
         $payload[0] = $payload[0] === 'e' ? 'f' : 'e';
         $tampered = "{$header}.{$payload}.{$signature}";
 

@@ -18,14 +18,14 @@ final readonly class AuthService
 
     public function login(LoginDTO $data): ?string
     {
-        return $this->guard()->attempt($data->toArray()) ?: null;
+        return $this->guard()->attempt(credentials: $data->toArray()) ?: null;
     }
 
     public function register(RegisterDTO $data): string
     {
         $user = User::create($data->toArray())->refresh();
 
-        return $this->guard()->login($user);
+        return $this->guard()->login(user: $user);
     }
 
     public function user(): ?User
@@ -59,7 +59,7 @@ final readonly class AuthService
         $guard = $this->auth->guard('api');
 
         if (! $guard instanceof JWTGuard) {
-            throw new \LogicException('Guard "api" must be an instance of ' . JWTGuard::class . '.');
+            throw new \LogicException(message: 'Guard "api" must be an instance of ' . JWTGuard::class . '.');
         }
 
         return $guard;

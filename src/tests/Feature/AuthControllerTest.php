@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\UserRoleEnum;
@@ -33,14 +35,14 @@ class AuthControllerTest extends TestCase
             ])
             ->assertJsonPath('user.role', UserRoleEnum::Guest->value);
 
-        self::assertNotEmpty($response->json('access_token'));
+        self::assertNotEmpty($response->json(key: 'access_token'));
 
-        $this->withHeader('Authorization', 'Bearer ' . $response->json('access_token'))
+        $this->withHeader('Authorization', 'Bearer ' . $response->json(key: 'access_token'))
             ->getJson('/api/auth/me')
             ->assertOk()
-            ->assertJsonPath('name', $payload['name'])
-            ->assertJsonPath('email', $payload['email'])
-            ->assertJsonPath('role', UserRoleEnum::Guest->value);
+            ->assertJsonPath(path: 'name', expect: $payload['name'])
+            ->assertJsonPath(path: 'email', expect: $payload['email'])
+            ->assertJsonPath(path: 'role', expect: UserRoleEnum::Guest->value);
 
         $this->postJson('/api/auth/login', [
             'email' => $payload['email'],
@@ -74,13 +76,13 @@ class AuthControllerTest extends TestCase
         $response = $this->postJson('api/auth/register', $payload);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(errors: ['email']);
     }
 
     // POST /api/auth/login (login)
     public function testLoginWithCorrectCredentials(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create(attributes: [
             'name' => 'name',
             'email' => 'email@mail.com',
             'password' => 'currentpassword',
@@ -101,18 +103,18 @@ class AuthControllerTest extends TestCase
                 'user' => ['id', 'name', 'email', 'role'],
             ]);
 
-        self::assertNotEmpty($response->json('access_token'));
+        self::assertNotEmpty($response->json(key: 'access_token'));
 
-        $this->withHeader('Authorization', 'Bearer ' . $response->json('access_token'))
+        $this->withHeader('Authorization', 'Bearer ' . $response->json(key: 'access_token'))
             ->getJson('/api/auth/me')
             ->assertOk()
-            ->assertJsonPath('name', $user->name)
-            ->assertJsonPath('email', $user->email);
+            ->assertJsonPath(path: 'name', expect: $user->name)
+            ->assertJsonPath(path: 'email', expect: $user->email);
     }
 
     public function testLoginWithIncorrectCredentials(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create(attributes: [
             'name' => 'name',
             'email' => 'email@mail.com',
             'password' => 'currentpassword',

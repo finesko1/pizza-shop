@@ -19,17 +19,17 @@ final class UserFactory extends Factory
 
     public function admin(): static
     {
-        return $this->state(['role' => UserRoleEnum::Admin]);
+        return $this->state(state: ['role' => UserRoleEnum::Admin]);
     }
 
     public function user(): static
     {
-        return $this->state(['role' => UserRoleEnum::User]);
+        return $this->state(state: ['role' => UserRoleEnum::User]);
     }
 
     public function guest(): static
     {
-        return $this->state(['role' => UserRoleEnum::Guest]);
+        return $this->state(state: ['role' => UserRoleEnum::Guest]);
     }
 
     public function definition(): array
@@ -39,7 +39,7 @@ final class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => self::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'remember_token' => Str::random(length: 10),
             'role' => $this->faker->randomElement(UserRoleEnum::cases()),
         ];
     }
@@ -49,7 +49,7 @@ final class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(static fn(array $attributes) => [
+        return $this->state(state: static fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }
