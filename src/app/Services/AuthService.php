@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Services;
+
+use App\DTO\LoginDTO;
+use App\DTO\RegisterDTO;
+use App\Models\User;
+use Illuminate\Contracts\Auth\Factory as AuthFactory;
+use Tymon\JWTAuth\JWTGuard;
+
+final readonly class AuthService
+{
+    public function __construct(
+        private AuthFactory $auth,
+    ) {}
+
+    public function login(LoginDTO $data): ?string
+    {
+        return $this->guard()->attempt($data->toArray()) ?: null;
+    }
+
+    public function register(RegisterDTO $data): string
+    {
+        $user = User::create($data->toArray());
+
+        return $this->guard()->login($user);
+    }
+
+    public function user(): ?User
+    {
+        $user = $this->guard()->user();
+
+        return $user instanceof User ? $user : null;
+    }
+
+    public function logout(): void
+    {
+        $this->guard()->logout();
+    }
+
+    public function refresh(): string
+    {
+        return $this->guard()->refresh();
+    }
+
+    public function tokenTtl(): int
+    {
+        return (int) $this->guard()->factory()->getTTL() * 60;
+    }
+
+    private function guard(): JWTGuard
+    {
+        return $this->auth->guard('api');
+    }
+}
