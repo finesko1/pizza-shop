@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
@@ -11,7 +13,7 @@ use App\Services\Auth\DTO\RegisterDTO;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
-class AuthController extends Controller
+final class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthService $auth,

@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Services\Auth;
+declare(strict_types=1);
+
+namespace App\Services;
 
 use App\Models\User;
 use App\Services\Auth\DTO\LoginDTO;

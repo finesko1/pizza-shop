@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Fixtures;
 
 use App\Enums\ProductCategoryEnum;
@@ -11,7 +13,7 @@ final class ProductPayload
         return array_replace([
             'name' => 'Пицца Пепперони',
             'description' => 'Острая пепперони, моцарелла, томатный соус',
-            'price' => 690_00,
+            'price' => 69_000,
             'weight' => 550,
             'category' => ProductCategoryEnum::Pizza->value,
         ], $overrides);
@@ -21,7 +23,7 @@ final class ProductPayload
     {
         return array_replace([
             'name' => 'Пицца Маргарита',
-            'price' => 900_00,
+            'price' => 90_000,
             'weight' => 900,
         ], $overrides);
     }

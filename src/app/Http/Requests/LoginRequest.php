@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Services\Auth\DTO\LoginDTO;
 
-class LoginRequest extends PublicFormRequest
+final class LoginRequest extends PublicFormRequest
 {
     public function rules(): array
     {

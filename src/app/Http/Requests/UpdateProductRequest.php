@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Enums\ProductCategoryEnum;
 use App\Models\Product;
 use Illuminate\Validation\Rule;
 
-class UpdateProductRequest extends PublicFormRequest
+final class UpdateProductRequest extends PublicFormRequest
 {
     public function authorize(): bool
     {

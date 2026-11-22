@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductPaginationRequest;
@@ -12,13 +14,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
-class ProductController extends Controller
+final class ProductController extends Controller
 {
     use ValidatesBigIntRouteBinding;
 
     /**
-     * GET /api/products
-     *
+     * GET /api/products.
      */
     public function index(ProductPaginationRequest $request): JsonResponse
     {
@@ -35,8 +36,7 @@ class ProductController extends Controller
     }
 
     /**
-     * POST /api/products
-     *
+     * POST /api/products.
      */
     public function store(StoreProductRequest $request): JsonResponse
     {
@@ -48,28 +48,25 @@ class ProductController extends Controller
     }
 
     /**
-     * GET /api/products/{product}
-     *
+     * GET /api/products/{product}.
      */
     public function show(Product $product): JsonResponse
     {
-        return (new ProductResource($product))->response();
+        return new ProductResource($product)->response();
     }
 
     /**
-     * PUT/PATCH /api/products/{product}
-     *
+     * PUT/PATCH /api/products/{product}.
      */
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
         $product->update($request->validated());
 
-        return (new ProductResource($product))->response();
+        return new ProductResource($product)->response();
     }
 
     /**
-     * DELETE /api/products/{product}
-     *
+     * DELETE /api/products/{product}.
      */
     public function destroy(Product $product): Response
     {

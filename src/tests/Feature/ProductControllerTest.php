@@ -11,12 +11,13 @@ use Tests\Concerns\InteractsWithApi;
 use Tests\Fixtures\ProductPayload;
 use Tests\TestCase;
 
-class ProductControllerTest extends TestCase
+final class ProductControllerTest extends TestCase
 {
-    use InteractsWithApi, RefreshDatabase;
+    use InteractsWithApi;
+    use RefreshDatabase;
 
     // GET /api/products (index)
-    public function test_index_returns_paginated_products_list(): void
+    public function testIndexReturnsPaginatedProductsList(): void
     {
         Product::factory()->count(8)->create();
 
@@ -38,7 +39,7 @@ class ProductControllerTest extends TestCase
     }
 
     // GET /api/products (index)
-    public function test_index_fails_with_invalid_pagination_parameters(): void
+    public function testIndexFailsWithInvalidPaginationParameters(): void
     {
         $this->getJson('/api/products?limit=-10&page=abc')
             ->assertUnprocessable()
@@ -46,7 +47,7 @@ class ProductControllerTest extends TestCase
     }
 
     // POST /api/products (store)
-    public function test_store_creates_new_product_with_valid_data(): void
+    public function testStoreCreatesNewProductWithValidData(): void
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
         $payload = ProductPayload::pepperoni();
@@ -66,7 +67,7 @@ class ProductControllerTest extends TestCase
     }
 
     // POST /api/products (store)
-    public function test_store_fails_validation_when_payload_is_invalid(): void
+    public function testStoreFailsValidationWhenPayloadIsInvalid(): void
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
 
@@ -79,7 +80,7 @@ class ProductControllerTest extends TestCase
     }
 
     // GET /api/products/{product} (show)
-    public function test_show_returns_single_product(): void
+    public function testShowReturnsSingleProduct(): void
     {
         $product = Product::factory()->pepperoni()->create();
 
@@ -96,7 +97,7 @@ class ProductControllerTest extends TestCase
     }
 
     // GET /api/products/{product} (show)
-    public function test_show_returns_404_for_non_existent_or_invalid_bigint_id(): void
+    public function testShowReturns404ForNonExistentOrInvalidBigintId(): void
     {
         $this->getJson('/api/products/999999')
             ->assertNotFound();
@@ -113,7 +114,7 @@ class ProductControllerTest extends TestCase
     }
 
     // PUT/PATCH /api/products/{product} (update)
-    public function test_update_modifies_existing_product(): void
+    public function testUpdateModifiesExistingProduct(): void
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
         $product = Product::factory()->pepperoni()->create();
@@ -133,7 +134,7 @@ class ProductControllerTest extends TestCase
     }
 
     // PUT/PATCH /api/products/{product} (update)
-    public function test_update_fails_on_non_existent_id_or_invalid_data(): void
+    public function testUpdateFailsOnNonExistentIdOrInvalidData(): void
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
 
@@ -165,7 +166,7 @@ class ProductControllerTest extends TestCase
     }
 
     // DELETE /api/products/{product} (destroy)
-    public function test_destroy_deletes_existing_product(): void
+    public function testDestroyDeletesExistingProduct(): void
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
         $product = Product::factory()->pepperoni()->create();
@@ -178,7 +179,7 @@ class ProductControllerTest extends TestCase
     }
 
     // DELETE /api/products/{product} (destroy)
-    public function test_destroy_returns_404_when_product_does_not_exist(): void
+    public function testDestroyReturns404WhenProductDoesNotExist(): void
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
 
@@ -191,7 +192,7 @@ class ProductControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_unauthorized_user_can_read_products_catalog(): void
+    public function testUnauthorizedUserCantReadProductsCatalog(): void
     {
         $product = Product::factory()->pepperoni()->create();
 
@@ -218,8 +219,8 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseCount('products', 1);
     }
 
-    #[DataProvider('readableRoles')]
-    public function test_authorized_user_can_read_products_catalog(UserRoleEnum $role): void
+    #[DataProvider('provideAuthorized_user_can_read_products_catalogCases')]
+    public function testAuthorizedUserCanReadProductsCatalog(UserRoleEnum $role): void
     {
         $token = $this->tokenFor(User::factory()->create(['role' => $role]));
         $product = Product::factory()->pepperoni()->create();
@@ -233,8 +234,17 @@ class ProductControllerTest extends TestCase
             ->assertOk();
     }
 
-    #[DataProvider('nonAdminRoles')]
-    public function test_user_and_guest_cant_edit_products_catalog(UserRoleEnum $role): void
+    public static function provideAuthorized_user_can_read_products_catalogCases(): iterable
+    {
+        return [
+            'guest' => [UserRoleEnum::Guest],
+            'user' => [UserRoleEnum::User],
+            'admin' => [UserRoleEnum::Admin],
+        ];
+    }
+
+    #[DataProvider('provideUser_and_guest_cant_edit_products_catalogCases')]
+    public function testUserAndGuestCantEditProductsCatalog(UserRoleEnum $role): void
     {
         $token = $this->tokenFor(User::factory()->create(['role' => $role]));
         $product = Product::factory()->pepperoni()->create();
@@ -255,7 +265,15 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseHas('products', ['id' => $product->id, 'name' => $product->name]);
     }
 
-    public function test_admin_can_edit_products_catalog(): void
+    public static function provideUser_and_guest_cant_edit_products_catalogCases(): iterable
+    {
+        return [
+            'guest' => [UserRoleEnum::Guest],
+            'user' => [UserRoleEnum::User],
+        ];
+    }
+
+    public function testAdminCanEditProductsCatalog(): void
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
         $product = Product::factory()->pepperoni()->create();
@@ -275,7 +293,7 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseCount('products', 1);
     }
 
-    public function test_invalid_token_is_rejected_on_store(): void
+    public function testInvalidTokenIsRejectedOnStore(): void
     {
         $this->withToken('not-a-jwt')
             ->postJson('/api/products', ProductPayload::pepperoni())
@@ -285,7 +303,7 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseCount('products', 0);
     }
 
-    public function test_tampered_token_is_rejected_on_update(): void
+    public function testTamperedTokenIsRejectedOnUpdate(): void
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
 
@@ -303,7 +321,7 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseMissing('products', ['name' => $updatePayload['name']]);
     }
 
-    public function test_expired_token_is_rejected_on_store(): void
+    public function testExpiredTokenIsRejectedOnStore(): void
     {
         $token = $this->tokenFor(User::factory()->admin()->create());
 
@@ -316,22 +334,5 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseCount('products', 0);
 
         $this->travelBack();
-    }
-
-    public static function readableRoles(): array
-    {
-        return [
-            'guest' => [UserRoleEnum::Guest],
-            'user' => [UserRoleEnum::User],
-            'admin' => [UserRoleEnum::Admin],
-        ];
-    }
-
-    public static function nonAdminRoles(): array
-    {
-        return [
-            'guest' => [UserRoleEnum::Guest],
-            'user' => [UserRoleEnum::User],
-        ];
     }
 }

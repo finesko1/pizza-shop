@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\ProductCategoryEnum;
@@ -7,6 +9,7 @@ use App\Models\Helpers\ValidatesBigIntRouteBinding;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,8 +18,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $price
  * @property int $weight
  * @property string $category
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @method static \Database\Factories\ProductFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product newQuery()
@@ -32,12 +35,12 @@ use Illuminate\Database\Eloquent\Model;
  * @mixin \Eloquent
  */
 #[Fillable(['name', 'description', 'price', 'weight', 'category'])]
-class Product extends Model
+final class Product extends Model
 {
-    use HasFactory, ValidatesBigIntRouteBinding;
-
-    const int PRICE_MAX = 1_000_000_00;
-    const int WEIGHT_MAX = 50_000;
+    use HasFactory;
+    use ValidatesBigIntRouteBinding;
+    public const int PRICE_MAX = 100_000_000;
+    public const int WEIGHT_MAX = 50_000;
 
     protected function casts(): array
     {

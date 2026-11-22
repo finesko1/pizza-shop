@@ -13,7 +13,7 @@ class AuthControllerTest extends TestCase
     use InteractsWithApi, RefreshDatabase;
 
     // POST /api/auth/register (register)
-    public function test_register_with_correct_credentials(): void
+    public function testRegisterWithCorrectCredentials(): void
     {
         $payload = [
             'name' => 'name',
@@ -33,7 +33,7 @@ class AuthControllerTest extends TestCase
             ])
             ->assertJsonPath('user.role', UserRoleEnum::Guest->value);
 
-        $this->assertNotEmpty($response->json('access_token'));
+        self::assertNotEmpty($response->json('access_token'));
 
         $this->withHeader('Authorization', 'Bearer ' . $response->json('access_token'))
             ->getJson('/api/auth/me')
@@ -56,7 +56,7 @@ class AuthControllerTest extends TestCase
         ]);
     }
 
-    public function test_register_with_non_unique_credentials(): void
+    public function testRegisterWithNonUniqueCredentials(): void
     {
         User::create([
             'name' => 'name',
@@ -77,13 +77,13 @@ class AuthControllerTest extends TestCase
             ->assertJsonValidationErrors(['email']);
     }
 
-    //POST /api/auth/login (login)
-    public function test_login_with_correct_credentials(): void
+    // POST /api/auth/login (login)
+    public function testLoginWithCorrectCredentials(): void
     {
         $user = User::factory()->create([
             'name' => 'name',
             'email' => 'email@mail.com',
-            'password' => 'currentpassword'
+            'password' => 'currentpassword',
         ]);
 
         $payload = [
@@ -98,10 +98,10 @@ class AuthControllerTest extends TestCase
                 'access_token',
                 'token_type',
                 'expires_in',
-                'user' => ['id', 'name', 'email', 'role']
+                'user' => ['id', 'name', 'email', 'role'],
             ]);
 
-        $this->assertNotEmpty($response->json('access_token'));
+        self::assertNotEmpty($response->json('access_token'));
 
         $this->withHeader('Authorization', 'Bearer ' . $response->json('access_token'))
             ->getJson('/api/auth/me')
@@ -110,12 +110,12 @@ class AuthControllerTest extends TestCase
             ->assertJsonPath('email', $user->email);
     }
 
-    public function test_login_with_incorrect_credentials(): void
+    public function testLoginWithIncorrectCredentials(): void
     {
         $user = User::factory()->create([
             'name' => 'name',
             'email' => 'email@mail.com',
-            'password' => 'currentpassword'
+            'password' => 'currentpassword',
         ]);
 
         $payload = [

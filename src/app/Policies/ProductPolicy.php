@@ -1,13 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Enums\UserRoleEnum;
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
-class ProductPolicy
+final class ProductPolicy
 {
     public function viewAny(?User $user = null): bool
     {
