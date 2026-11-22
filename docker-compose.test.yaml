@@ -1,0 +1,47 @@
+name: pizza-shop-test
+
+services:
+    artisan:
+        image: app-dev:latest
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: development
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.4}
+        volumes:
+            - ./src:/var/www/html
+        working_dir: /var/www/html
+        env_file:
+            - ./src/.env
+        environment:
+            - APP_ENV=testing
+            - DB_CONNECTION=pgsql
+            - DB_HOST=db-test
+            - DB_PORT=5432
+            - DB_DATABASE=pizza_shop_test
+            - DB_USERNAME=${DB_USERNAME:-root}
+            - DB_PASSWORD=${DB_PASSWORD:-currentPassword}
+            - SESSION_DRIVER=array
+            - CACHE_STORE=array
+            - QUEUE_CONNECTION=sync
+            - MAIL_MAILER=array
+        depends_on:
+            db-test:
+                condition: service_healthy
+        entrypoint: [ "php", "artisan" ]
+
+    db-test:
+        image: postgres:${POSTGRES_VERSION:-17}-alpine
+        environment:
+            - POSTGRES_DB=pizza_shop_test
+            - POSTGRES_USER=${DB_USERNAME:-root}
+            - POSTGRES_PASSWORD=${DB_PASSWORD:-currentPassword}
+        tmpfs:
+            - /var/lib/postgresql/data
+        command: postgres -c fsync=off
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-root} -d pizza_shop_test" ]
+            interval: 3s
+            timeout: 3s
+            retries: 10
