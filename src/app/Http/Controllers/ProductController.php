@@ -10,6 +10,7 @@ use App\Models\Helpers\ValidatesBigIntRouteBinding;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class ProductController extends Controller
 {
@@ -72,6 +73,8 @@ class ProductController extends Controller
      */
     public function destroy(Product $product): Response
     {
+        Gate::authorize('delete', $product);
+
         $product->delete();
 
         return response()->noContent();

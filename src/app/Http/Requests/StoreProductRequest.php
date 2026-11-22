@@ -8,6 +8,11 @@ use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends PublicFormRequest
 {
+    public function authorize(): bool
+    {
+        return $this->user()?->can('create', Product::class) ?? false;
+    }
+
     public function rules(): array
     {
         return [
