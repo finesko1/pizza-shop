@@ -50,3 +50,6 @@ Homestead.yaml
 # PHPStan
 /.phpstan.neon
 /storage/framework/cache/phpstan
+
+# Rector
+/storage/framework/cache/rector

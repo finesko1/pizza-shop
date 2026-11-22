@@ -25,7 +25,7 @@ endef
         deploy shell-prod \
         shell-dev build \
         test test-init test-build test-prepare test-clean shell-test \
-        jwt-check jwt-generate cs cs-fix stan stan-baseline
+        jwt-check jwt-generate cs cs-fix stan stan-baseline rector rector-fix
 
 # Описание команд
 help:
@@ -75,6 +75,8 @@ help:
 	@echo "    make cs-fix          - Исправить стиль кода (composer cs:fix)"
 	@echo "    make stan            - Статический анализ кода (composer stan)"
 	@echo "    make stan-baseline   - Сгенерировать baseline PHPStan (composer stan-baseline)"
+	@echo "    make rector          - Проверить рефакторинг Rector (dry-run)"
+	@echo "    make rector-fix      - Применить рефакторинг Rector"
 	@echo ""
 	@echo "    make jwt-generate    - сгенерировать JWT_SECRET (спросит подтверждение, если текущий корректен)"
 	@echo "	   make jwt-check   	- проверка токена"

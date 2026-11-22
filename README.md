@@ -57,6 +57,7 @@ make dev-init
 | `make shell-dev` | Shell (`sh`) в контейнере с artisan: `php artisan ...` |
 | `make cs` / `make cs-fix` | Проверить / исправить стиль кода (PHP CS Fixer) |
 | `make stan` | Статический анализ (PHPStan + Larastan) |
+| `make rector` / `make rector-fix` | Проверить / применить рефакторинг (Rector) |
 | `make help` | Список всех команд |
 
 Внутри `make shell-dev` доступны привычные команды:
@@ -164,6 +165,40 @@ includes:
 
 Baseline скрывает только уже известные ошибки: новый код проверяется полностью,
 а исправленные записи помечаются как лишние — их следует удалять.
+
+---
+
+## Автоматический рефакторинг
+
+Для массовых изменений кода используется **Rector** (`src/rector.php`).
+Сейчас подключено одно правило — **AddNamedArgumentsRector**: оно расставляет
+именованные аргументы там, где это безопасно.
+
+```bash
+make rector       # dry-run: показать дифф, файлы не меняет
+make rector-fix   # применить изменения
+```
+
+Правило не трогает `vendor`, вызовы с распаковкой (`...$args`), методы,
+которые не удаётся разрешить через рефлексию (магия Eloquent/фасадов),
+и классы/методы с `@no-named-arguments`. Синтетические имена для variadic
+(`values1`, `values2`) отключены.
+
+Рекомендуемый порядок после рефакторинга:
+
+```bash
+make rector-fix
+make cs-fix
+make stan
+make test
+```
+
+> **Важно:** named arguments зависят от имён параметров вызываемого кода.
+> Перед применением просмотрите `make rector`, а нестабильные вызовы сторонних
+> пакетов добавьте в `SKIP_CALLS` в `src/rector.php`. Первый запуск намеренно
+> сделан в режиме dry-run.
+
+Скрипты продублированы в `src/composer.json` (`composer rector` / `composer rector:fix`).
 
 ---
 
@@ -319,7 +354,8 @@ curl -X POST http://127.0.0.1:8080/api/login \
 │   ├── jwt.mk                # jwt-check / jwt-generate
 │   ├── misc.mk               # build
 │   ├── cs-fixer.mk           # make cs / cs-fix
-│   └── phpstan.mk            # make stan / stan-baseline
+│   ├── phpstan.mk            # make stan / stan-baseline
+│   └── rector.mk             # make rector / rector-fix
 ├── docker-compose.yaml       # база: php-fpm-blue/green, nginx, db
 ├── docker-compose.dev.yaml   # dev: mount src/, Xdebug
 ├── docker-compose.prod.yaml  # prod: multi-stage build
@@ -334,6 +370,7 @@ curl -X POST http://127.0.0.1:8080/api/login \
     ├── tests/
     ├── .php-cs-fixer.dist.php # конфиг PHP CS Fixer
     ├── phpstan.neon.dist     # конфиг PHPStan + Larastan
+    ├── rector.php            # конфиг Rector
     ├── .env.example          # переменные Laravel
     └── storage/database/     # данные dev-БД (bind mount)
 ```

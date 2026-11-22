@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "47c1911279ab67e81654ffe60df4567e",
+    "content-hash": "fe76f549221845eb1375eb76155544da",
     "packages": [
         {
             "name": "brick/math",
@@ -9355,6 +9355,128 @@
             "published-time": "2024-06-11T12:48:34+00:00"
         },
         {
+            "name": "rector/rector",
+            "version": "2.8.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rectorphp/rector.git",
+                "reference": "bf2982e3e2b8dfbcb43e5589fa301431cb1e479e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/bf2982e3e2b8dfbcb43e5589fa301431cb1e479e",
+                "reference": "bf2982e3e2b8dfbcb43e5589fa301431cb1e479e",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0",
+                "phpstan/phpstan": "^2.3.5"
+            },
+            "conflict": {
+                "rector/rector-doctrine": "*",
+                "rector/rector-downgrade-php": "*",
+                "rector/rector-phpunit": "*",
+                "rector/rector-symfony": "*"
+            },
+            "bin": [
+                "bin/rector"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Instant Upgrade and Automated Refactoring of any PHP code",
+            "homepage": "https://getrector.com/",
+            "keywords": [
+                "automation",
+                "dev",
+                "migration",
+                "refactoring"
+            ],
+            "support": {
+                "issues": "https://github.com/rectorphp/rector/issues",
+                "source": "https://github.com/rectorphp/rector/tree/2.8.5"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/tomasvotruba",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-11-14T23:24:35+00:00",
+            "published-time": "2026-11-14T23:24:41+00:00"
+        },
+        {
+            "name": "savinmikhail/add_named_arguments_rector",
+            "version": "v0.1.27",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/savinmikhail/AddNamedArgumentsRector.git",
+                "reference": "6655e9b5ba896eb901692e89a33449d435c1fd30"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/savinmikhail/AddNamedArgumentsRector/zipball/6655e9b5ba896eb901692e89a33449d435c1fd30",
+                "reference": "6655e9b5ba896eb901692e89a33449d435c1fd30",
+                "shasum": ""
+            },
+            "require": {
+                "nikic/php-parser": "^4.19.4 || ^5.1",
+                "php": ">=8.2",
+                "phpstan/phpstan": "^2.1.5",
+                "rector/rector": "^2.0.9",
+                "webmozart/assert": "^1.11"
+            },
+            "require-dev": {
+                "ergebnis/composer-normalize": "^2.45",
+                "friendsofphp/php-cs-fixer": "^3.68.5",
+                "icanhazstring/composer-unused": "^0.8.11",
+                "maglnet/composer-require-checker": "^4.15",
+                "phpunit/phpunit": "^10.5.45",
+                "phpyh/coding-standard": "^2.6.2",
+                "savinmikhail/dist-size-optimizer": "^0.2.4"
+            },
+            "type": "rector-extension",
+            "autoload": {
+                "psr-4": {
+                    "SavinMikhail\\AddNamedArgumentsRector\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Savin Mikhail",
+                    "email": "mikhail.d.savin@gmail.com"
+                }
+            ],
+            "description": "Rector extension for PHP that converts positional function, method, and constructor calls to named arguments.",
+            "keywords": [
+                "automated refactoring",
+                "dev",
+                "named arguments",
+                "php",
+                "rector",
+                "rector extension",
+                "refactoring",
+                "static analysis"
+            ],
+            "support": {
+                "issues": "https://github.com/savinmikhail/AddNamedArgumentsRector/issues",
+                "source": "https://github.com/savinmikhail/AddNamedArgumentsRector/tree/v0.1.27"
+            },
+            "time": "2026-10-26T20:36:37+00:00",
+            "published-time": "2026-10-26T20:48:19+00:00"
+        },
+        {
             "name": "sebastian/cli-parser",
             "version": "4.2.1",
             "source": {
@@ -10695,6 +10817,65 @@
             ],
             "time": "2025-12-08T11:19:18+00:00",
             "published-time": "2025-12-08T11:19:39+00:00"
+        },
+        {
+            "name": "webmozart/assert",
+            "version": "1.12.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/webmozarts/assert.git",
+                "reference": "9be6926d8b485f55b9229203f962b51ed377ba68"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/webmozarts/assert/zipball/9be6926d8b485f55b9229203f962b51ed377ba68",
+                "reference": "9be6926d8b485f55b9229203f962b51ed377ba68",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ctype": "*",
+                "ext-date": "*",
+                "ext-filter": "*",
+                "php": "^7.2 || ^8.0"
+            },
+            "suggest": {
+                "ext-intl": "",
+                "ext-simplexml": "",
+                "ext-spl": ""
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.10-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Webmozart\\Assert\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bernhard Schussek",
+                    "email": "bschussek@gmail.com"
+                }
+            ],
+            "description": "Assertions to validate method input/output with nice error messages.",
+            "keywords": [
+                "assert",
+                "check",
+                "validate"
+            ],
+            "support": {
+                "issues": "https://github.com/webmozarts/assert/issues",
+                "source": "https://github.com/webmozarts/assert/tree/1.12.1"
+            },
+            "time": "2025-10-29T15:56:20+00:00",
+            "published-time": "2025-10-29T15:56:42+00:00"
         }
     ],
     "aliases": [],

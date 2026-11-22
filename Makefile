@@ -10,6 +10,7 @@
 #   make/misc.mk      — build
 #   make/cs-fixer.mk  — PHP CS Fixer
 #   make/phpstan.mk   — PHPStan + Larastan
+#   make/rector.mk    — Rector
 
 MAKE_DIR := make
 
@@ -23,3 +24,4 @@ include $(MAKE_DIR)/jwt.mk
 include $(MAKE_DIR)/misc.mk
 include $(MAKE_DIR)/cs-fixer.mk
 include $(MAKE_DIR)/phpstan.mk
+include $(MAKE_DIR)/rector.mk
