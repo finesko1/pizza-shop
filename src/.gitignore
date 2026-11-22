@@ -46,3 +46,7 @@ Homestead.yaml
 # PHP CS Fixer configuration
 /.php-cs-fixer.cache
 /.php-cs-fixer.php
+
+# PHPStan
+/.phpstan.neon
+/storage/framework/cache/phpstan

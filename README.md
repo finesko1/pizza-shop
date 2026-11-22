@@ -55,6 +55,8 @@ make dev-init
 | `make dev-build` | Пересобрать dev-образы |
 | `make dev-init` | Полный первый запуск dev (setup + зависимости + миграции + JWT + запуск) |
 | `make shell-dev` | Shell (`sh`) в контейнере с artisan: `php artisan ...` |
+| `make cs` / `make cs-fix` | Проверить / исправить стиль кода (PHP CS Fixer) |
+| `make stan` | Статический анализ (PHPStan + Larastan) |
 | `make help` | Список всех команд |
 
 Внутри `make shell-dev` доступны привычные команды:
@@ -113,6 +115,55 @@ make cs-fix   # автоматически исправить
 
 Скрипты продублированы в `src/composer.json` (`composer cs` / `composer cs:fix`),
 поэтому их можно запускать и напрямую на хосте, если установлены PHP и Composer.
+
+---
+
+## Статический анализ
+
+Код проверяется **PHPStan** (level 6) вместе с **Larastan** — расширением,
+которое объясняет PHPStan магию Laravel (Eloquent-модели, фасады, контейнер,
+`FormRequest`, ресурсы). Конфиг — `src/phpstan.neon.dist`.
+
+```bash
+make stan       # запустить анализ
+make stan-baseline  # зафиксировать текущие ошибки в baseline
+```
+
+Анализируются `app`, `bootstrap`, `database`, `routes` и `tests`. Larastan
+поднимает приложение, поэтому нужен `src/.env` с `APP_KEY`, но **база данных
+не требуется** — миграции читаются с диска.
+
+Полезные параметры конфига:
+
+| Параметр | Зачем |
+|---|---|
+| `checkModelProperties: true` | проверять ключи, передаваемые в `create()`/`update()` |
+| `parseModelCastsMethod: true` | выводить типы из тела `casts()` (enum-касты и т.п.) |
+| `tmpDir` | кэш PHPStan в `storage/framework/cache/phpstan` |
+
+Скрипты продублированы в `src/composer.json` (`composer stan` / `composer stan:baseline`).
+
+### Baseline
+
+Сейчас проект проходит анализ **без ошибок**, поэтому `phpstan-baseline.neon`
+не нужен. Если появятся ошибки, которые нельзя исправить сразу (например,
+из-за магии сторонней библиотеки), можно зафиксировать их:
+
+```bash
+make stan-baseline
+```
+
+Команда создаст `src/phpstan-baseline.neon`; его нужно закоммитить и подключить
+в `src/phpstan.neon.dist`:
+
+```neon
+includes:
+    - phpstan-baseline.neon
+    - vendor/larastan/larastan/extension.neon
+```
+
+Baseline скрывает только уже известные ошибки: новый код проверяется полностью,
+а исправленные записи помечаются как лишние — их следует удалять.
 
 ---
 
@@ -266,7 +317,9 @@ curl -X POST http://127.0.0.1:8080/api/login \
 │   ├── artisan.mk            # shell-dev / shell-prod
 │   ├── test.mk               # тесты
 │   ├── jwt.mk                # jwt-check / jwt-generate
-│   └── misc.mk               # build
+│   ├── misc.mk               # build
+│   ├── cs-fixer.mk           # make cs / cs-fix
+│   └── phpstan.mk            # make stan / stan-baseline
 ├── docker-compose.yaml       # база: php-fpm-blue/green, nginx, db
 ├── docker-compose.dev.yaml   # dev: mount src/, Xdebug
 ├── docker-compose.prod.yaml  # prod: multi-stage build
@@ -279,6 +332,8 @@ curl -X POST http://127.0.0.1:8080/api/login \
     ├── app/                  # контроллеры, модели, requests, resources
     ├── routes/api.php        # API-маршруты
     ├── tests/
+    ├── .php-cs-fixer.dist.php # конфиг PHP CS Fixer
+    ├── phpstan.neon.dist     # конфиг PHPStan + Larastan
     ├── .env.example          # переменные Laravel
     └── storage/database/     # данные dev-БД (bind mount)
 ```

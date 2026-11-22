@@ -9,9 +9,10 @@ $finder = (new PhpCsFixer\Finder())
 
 $config = (new PhpCsFixer\Config())
     ->setCacheFile(__DIR__ . '/.php-cs-fixer.cache')
-    ->setUnsupportedPhpVersionAllowed(true) // или поднять php до ^8.4
     ->setFinder($finder);
 
-(new PhpCsFixerCodingStandard())->applyTo($config);
+(new PhpCsFixerCodingStandard())->applyTo($config, [
+    'final_public_method_for_abstract_class' => false,
+]);
 
 return $config;
