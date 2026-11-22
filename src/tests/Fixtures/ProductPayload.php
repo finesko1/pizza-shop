@@ -8,6 +8,11 @@ use App\Enums\ProductCategoryEnum;
 
 final class ProductPayload
 {
+    /**
+     * @param array<string, mixed> $overrides
+     *
+     * @return array<string, mixed>
+     */
     public static function pepperoni(array $overrides = []): array
     {
         return array_replace([
@@ -19,6 +24,11 @@ final class ProductPayload
         ], $overrides);
     }
 
+    /**
+     * @param array<string, mixed> $overrides
+     *
+     * @return array<string, mixed>
+     */
     public static function margaritaUpdate(array $overrides = []): array
     {
         return array_replace([
@@ -28,6 +38,9 @@ final class ProductPayload
         ], $overrides);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public static function invalid(): array
     {
         return [

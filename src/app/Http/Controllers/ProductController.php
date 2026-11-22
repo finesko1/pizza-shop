@@ -8,7 +8,6 @@ use App\Http\Requests\ProductPaginationRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
-use App\Models\Helpers\ValidatesBigIntRouteBinding;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -16,8 +15,6 @@ use Illuminate\Support\Facades\Gate;
 
 final class ProductController extends Controller
 {
-    use ValidatesBigIntRouteBinding;
-
     /**
      * GET /api/products.
      */

@@ -8,6 +8,9 @@ use App\Services\Auth\DTO\RegisterDTO;
 
 class RegisterRequest extends PublicFormRequest
 {
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [

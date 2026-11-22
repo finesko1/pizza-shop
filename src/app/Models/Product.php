@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property int $price
  * @property int $weight
- * @property string $category
+ * @property ProductCategoryEnum $category
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static \Database\Factories\ProductFactory factory($count = null, $state = [])
@@ -37,6 +37,7 @@ use Illuminate\Support\Carbon;
 #[Fillable(['name', 'description', 'price', 'weight', 'category'])]
 final class Product extends Model
 {
+    /** @use HasFactory<\Database\Factories\ProductFactory> */
     use HasFactory;
     use ValidatesBigIntRouteBinding;
     public const int PRICE_MAX = 100_000_000;

@@ -6,6 +6,9 @@ namespace App\Http\Requests;
 
 final class ProductPaginationRequest extends PublicFormRequest
 {
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [

@@ -56,6 +56,12 @@ final readonly class AuthService
 
     private function guard(): JWTGuard
     {
-        return $this->auth->guard('api');
+        $guard = $this->auth->guard('api');
+
+        if (! $guard instanceof JWTGuard) {
+            throw new \LogicException('Guard "api" must be an instance of ' . JWTGuard::class . '.');
+        }
+
+        return $guard;
     }
 }

@@ -18,6 +18,9 @@ final class UpdateProductRequest extends PublicFormRequest
             && ($this->user()?->can('update', $product) ?? false);
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [

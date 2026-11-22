@@ -15,6 +15,9 @@ final class StoreProductRequest extends PublicFormRequest
         return $this->user()?->can('create', Product::class) ?? false;
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [

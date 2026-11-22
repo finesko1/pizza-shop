@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use App\Enums\UserRoleEnum;
 use PHPUnit\Framework\TestCase;
 
 final class ExampleTest extends TestCase
@@ -11,8 +12,8 @@ final class ExampleTest extends TestCase
     /**
      * A basic test example.
      */
-    public function testThatTrueIsTrue(): void
+    public function testAdminRoleHasExpectedValue(): void
     {
-        self::assertTrue(true);
+        self::assertSame('admin', UserRoleEnum::Admin->value);
     }
 }

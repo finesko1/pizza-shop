@@ -8,6 +8,9 @@ use App\Services\Auth\DTO\LoginDTO;
 
 final class LoginRequest extends PublicFormRequest
 {
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [

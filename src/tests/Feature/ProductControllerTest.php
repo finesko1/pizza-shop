@@ -219,7 +219,7 @@ final class ProductControllerTest extends TestCase
         $this->assertDatabaseCount('products', 1);
     }
 
-    #[DataProvider('provideAuthorized_user_can_read_products_catalogCases')]
+    #[DataProvider('provideAuthorizedUserCanReadProductsCatalogCases')]
     public function testAuthorizedUserCanReadProductsCatalog(UserRoleEnum $role): void
     {
         $token = $this->tokenFor(User::factory()->create(['role' => $role]));
@@ -234,7 +234,10 @@ final class ProductControllerTest extends TestCase
             ->assertOk();
     }
 
-    public static function provideAuthorized_user_can_read_products_catalogCases(): iterable
+    /**
+     * @return iterable<string, array{UserRoleEnum}>
+     */
+    public static function provideAuthorizedUserCanReadProductsCatalogCases(): iterable
     {
         return [
             'guest' => [UserRoleEnum::Guest],
@@ -243,7 +246,7 @@ final class ProductControllerTest extends TestCase
         ];
     }
 
-    #[DataProvider('provideUser_and_guest_cant_edit_products_catalogCases')]
+    #[DataProvider('provideUserAndGuestCantEditProductsCatalogCases')]
     public function testUserAndGuestCantEditProductsCatalog(UserRoleEnum $role): void
     {
         $token = $this->tokenFor(User::factory()->create(['role' => $role]));
@@ -265,7 +268,10 @@ final class ProductControllerTest extends TestCase
         $this->assertDatabaseHas('products', ['id' => $product->id, 'name' => $product->name]);
     }
 
-    public static function provideUser_and_guest_cant_edit_products_catalogCases(): iterable
+    /**
+     * @return iterable<string, array{UserRoleEnum}>
+     */
+    public static function provideUserAndGuestCantEditProductsCatalogCases(): iterable
     {
         return [
             'guest' => [UserRoleEnum::Guest],

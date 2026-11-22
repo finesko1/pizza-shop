@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 trait ValidatesBigIntRouteBinding
 {
-    public function resolveRouteBinding($value, $field = null): ?Model
+    public function resolveRouteBinding(mixed $value, mixed $field = null): ?Model
     {
         if (($field ?? $this->getRouteKeyName()) === 'id') {
             $modelName = class_basename($this);
