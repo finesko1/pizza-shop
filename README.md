@@ -226,6 +226,8 @@ Pipeline описан в `.gitlab-ci.yml` и запускается на **ка�
 с поддержкой Docker-in-Docker (privileged). Секреты в `.env` не коммитятся:
 CI создаёт `src/.env` из `src/.env.example` и генерирует `APP_KEY`.
 
+Результат первого прогона предоставлен ниже
+
 ---
 
 ## JWT
