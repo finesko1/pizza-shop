@@ -209,6 +209,8 @@ make test
 
 Pipeline описан в `.gitlab-ci.yml` и запускается на **каждый push и merge request**.
 
+Успешный запуск: [pipeline](https://gitlab.com/finesko-group/pizza-shop/-/pipelines/3102454222)
+
 | Stage | Job | Что делает |
 |---|---|---|
 | build | `build:prod` | собирает production-образ из `docker/php/Dockerfile` (target `production`) |
@@ -219,8 +221,7 @@ Pipeline описан в `.gitlab-ci.yml` и запускается на **ка�
 | code-quality | `rector` | `composer rector` (dry-run) |
 
 Все quality-jobs независимы: результат каждой проверки виден в одном pipeline,
-падение любой делает pipeline красным. Для merge-request включите
-**Settings → Merge requests → Merge checks → Pipelines must succeed**.
+падение любой делает pipeline красным. 
 
 Требования к окружению GitLab: включённый **Container Registry** и runner
 с поддержкой Docker-in-Docker (privileged). Секреты в `.env` не коммитятся:
@@ -230,8 +231,6 @@ CI создаёт `src/.env` из `src/.env.example` и генерирует `AP
 `docker/php/** + src/**` для production). Если такой образ уже есть в registry,
 он переиспользуется без пересборки; для новых сборок работает registry-кеш
 слоёв (`cache-ci` / `cache-prod`).
-
-Результат первого прогона предоставлен ниже
 
 ---
 
