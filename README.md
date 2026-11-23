@@ -205,6 +205,29 @@ make test
 
 ---
 
+## CI (GitLab)
+
+Pipeline описан в `.gitlab-ci.yml` и запускается на **каждый push и merge request**.
+
+| Stage | Job | Что делает |
+|---|---|---|
+| build | `build:prod` | собирает production-образ из `docker/php/Dockerfile` (target `production`) |
+| build | `build:ci` | собирает development-образ для проверок (Composer + PHP-расширения) |
+| code-quality | `test` | полный PHPUnit suite на PostgreSQL |
+| code-quality | `php-cs-fixer` | `composer cs` (check) |
+| code-quality | `phpstan` | `composer stan` (level 6 + Larastan) |
+| code-quality | `rector` | `composer rector` (dry-run) |
+
+Все quality-jobs независимы: результат каждой проверки виден в одном pipeline,
+падение любой делает pipeline красным. Для merge-request включите
+**Settings → Merge requests → Merge checks → Pipelines must succeed**.
+
+Требования к окружению GitLab: включённый **Container Registry** и runner
+с поддержкой Docker-in-Docker (privileged). Секреты в `.env` не коммитятся:
+CI создаёт `src/.env` из `src/.env.example` и генерирует `APP_KEY`.
+
+---
+
 ## JWT
 
 Секрет хранится в `src/.env` (`JWT_SECRET`), время жизни — `JWT_TTL`, refresh — `JWT_REFRESH_TTL`.
@@ -359,6 +382,7 @@ curl -X POST http://127.0.0.1:8080/api/login \
 │   ├── cs-fixer.mk           # make cs / cs-fix
 │   ├── phpstan.mk            # make stan / stan-baseline
 │   └── rector.mk             # make rector / rector-fix
+├── .gitlab-ci.yml            # CI: build + test + quality-проверки
 ├── docker-compose.yaml       # база: php-fpm-blue/green, nginx, db
 ├── docker-compose.dev.yaml   # dev: mount src/, Xdebug
 ├── docker-compose.prod.yaml  # prod: multi-stage build

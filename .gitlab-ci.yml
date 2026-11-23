@@ -1,0 +1,104 @@
+stages:
+  - build
+  - code-quality
+
+variables:
+  PHP_VERSION: "8.4"
+  POSTGRES_VERSION: "17"
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+  IMAGE_PROD: "$CI_REGISTRY_IMAGE:prod-$CI_COMMIT_SHORT_SHA"
+  IMAGE_CI: "$CI_REGISTRY_IMAGE:ci-$CI_COMMIT_SHORT_SHA"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+default:
+  interruptible: true
+
+.docker:
+  image: docker:27-cli
+  services:
+    - name: docker:27-dind
+      command: ["--tls=false"]
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+
+# Production image
+build:prod:
+  extends: .docker
+  stage: build
+  script:
+    - docker build
+        --target production
+        --build-arg PHP_VERSION=$PHP_VERSION
+        -t $IMAGE_PROD
+        -f docker/php/Dockerfile
+        .
+    - docker push $IMAGE_PROD
+
+# Development image
+build:ci:
+  extends: .docker
+  stage: build
+  script:
+    - docker build
+        --target development
+        --build-arg PHP_VERSION=$PHP_VERSION
+        -t $IMAGE_CI
+        -f docker/php/Dockerfile
+        .
+    - docker push $IMAGE_CI
+
+.quality:
+  stage: code-quality
+  image: $IMAGE_CI
+  needs: ["build:ci"]
+  variables:
+    JWT_SECRET: ci-only-jwt-secret-0123456789abcdef
+    XDEBUG_MODE: "off"
+  cache:
+    key:
+      files:
+        - src/composer.lock
+      prefix: $CI_JOB_NAME
+    paths:
+      - src/vendor/
+  before_script:
+    - cp src/.env.example src/.env
+    - (cd src && php artisan key:generate --force --no-interaction)
+    - (cd src && composer install --no-interaction --prefer-dist --no-progress)
+
+test:
+  extends: .quality
+  services:
+    - name: postgres:${POSTGRES_VERSION}-alpine
+      alias: db-test
+      variables:
+        POSTGRES_DB: pizza_shop_test
+        POSTGRES_USER: root
+        POSTGRES_PASSWORD: currentPassword
+  script:
+    - >
+      for i in $(seq 1 30); do
+        php -r 'exit(@pg_connect("host=db-test port=5432 dbname=pizza_shop_test user=root password=currentPassword") ? 0 : 1);' && break;
+        sleep 1;
+      done
+    - cd src && php artisan test
+
+php-cs-fixer:
+  extends: .quality
+  script:
+    - cd src && composer cs
+
+phpstan:
+  extends: .quality
+  script:
+    - cd src && composer stan
+
+rector:
+  extends: .quality
+  script:
+    - cd src && composer rector
