@@ -9,15 +9,12 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   IMAGE_PROD: "$CI_REGISTRY_IMAGE:prod-$CI_COMMIT_SHORT_SHA"
   IMAGE_CI: "$CI_REGISTRY_IMAGE:ci-$CI_COMMIT_SHORT_SHA"
-  # Always start from a clean checkout: avoids stale .git/shallow.lock
-  # after interrupted/cancelled pipelines.
   GIT_STRATEGY: clone
   GIT_DEPTH: "1"
 
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    # Do not run a second (branch) pipeline when an MR is already open.
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
     - if: $CI_COMMIT_BRANCH
@@ -43,18 +40,19 @@ build:prod:
   extends: .docker
   stage: build
   script:
-    - export HASH=$(find docker/php src
-        ! -path 'src/vendor/*'
-        ! -path 'src/node_modules/*'
-        ! -path 'src/var/*'
-        ! -path 'src/storage/*'
-        ! -path 'src/bootstrap/cache/*'
-        ! -path 'src/public/build/*'
-        ! -name '.env'
-        ! -name '_ide_helper.php'
-        ! -name '_ide_helper_models.php'
-        ! -name '.php-cs-fixer.cache'
-        ! -name '.phpunit.result.cache'
+    - |
+      export HASH=$(find docker/php src \
+        ! -path 'src/vendor/*' \
+        ! -path 'src/node_modules/*' \
+        ! -path 'src/var/*' \
+        ! -path 'src/storage/*' \
+        ! -path 'src/bootstrap/cache/*' \
+        ! -path 'src/public/build/*' \
+        ! -name '.env' \
+        ! -name '_ide_helper.php' \
+        ! -name '_ide_helper_models.php' \
+        ! -name '.php-cs-fixer.cache' \
+        ! -name '.phpunit.result.cache' \
         -type f -print0 | xargs -0 sha256sum | sort | sha256sum | cut -c1-16)
     - HASH_IMAGE="$CI_REGISTRY_IMAGE:prod-$HASH"
     - echo "Production build hash: $HASH"
