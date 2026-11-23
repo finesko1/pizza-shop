@@ -65,7 +65,9 @@ build:ci:
 
 .quality:
   stage: code-quality
-  image: $IMAGE_CI
+  image:
+    name: $IMAGE_CI
+    entrypoint: [""]
   needs: ["build:ci"]
   variables:
     JWT_SECRET: ci-only-jwt-secret-0123456789abcdef
