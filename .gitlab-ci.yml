@@ -55,7 +55,8 @@ build:prod:
         ! -name '.phpunit.result.cache' \
         -type f -print0 | xargs -0 sha256sum | sort | sha256sum | cut -c1-16)
     - HASH_IMAGE="$CI_REGISTRY_IMAGE:prod-$HASH"
-    - echo "Production build hash: $HASH"
+    - |
+      echo "Production build hash: $HASH"
     - |
       if docker manifest inspect "$IMAGE_PROD" >/dev/null 2>&1; then
         echo "Reusing existing image $IMAGE_PROD"
@@ -85,7 +86,8 @@ build:ci:
   script:
     - export HASH=$(find docker/php -type f -print0 | xargs -0 sha256sum | sort | sha256sum | cut -c1-16)
     - HASH_IMAGE="$CI_REGISTRY_IMAGE:ci-$HASH"
-    - echo "CI build hash: $HASH"
+    - |
+      echo "CI build hash: $HASH"
     - |
       if docker manifest inspect "$IMAGE_CI" >/dev/null 2>&1; then
         echo "Reusing existing image $IMAGE_CI"
