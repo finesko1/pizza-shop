@@ -81,8 +81,8 @@ build:ci:
       - src/vendor/
   before_script:
     - cp src/.env.example src/.env
-    - (cd src && php artisan key:generate --force --no-interaction)
     - (cd src && composer install --no-interaction --prefer-dist --no-progress)
+    - (cd src && php artisan key:generate --force --no-interaction)
 
 test:
   extends: .quality
