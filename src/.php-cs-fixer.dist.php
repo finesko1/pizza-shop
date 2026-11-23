@@ -4,11 +4,11 @@ use PHPyh\CodingStandard\PhpCsFixerCodingStandard;
 
 $finder = (new PhpCsFixer\Finder())
     ->in(__DIR__)
-    ->exclude(['vendor', 'node_modules', 'storage', 'bootstrap/cache', 'public/build'])
+    ->exclude(['vendor', 'node_modules', 'storage', 'var', 'bootstrap/cache', 'public/build'])
     ->notPath('_ide_helper.php');
 
 $config = (new PhpCsFixer\Config())
-    ->setCacheFile(__DIR__ . '/.php-cs-fixer.cache')
+    ->setCacheFile(__DIR__ . '/var/.php-cs-fixer.cache')
     ->setFinder($finder);
 
 (new PhpCsFixerCodingStandard())->applyTo($config, [

@@ -140,9 +140,12 @@ make stan-baseline  # зафиксировать текущие ошибки в 
 |---|---|
 | `checkModelProperties: true` | проверять ключи, передаваемые в `create()`/`update()` |
 | `parseModelCastsMethod: true` | выводить типы из тела `casts()` (enum-касты и т.п.) |
-| `tmpDir` | кэш PHPStan в `storage/framework/cache/phpstan` |
+| `tmpDir` | кэш PHPStan в `var/phpstan` |
 
 Скрипты продублированы в `src/composer.json` (`composer stan` / `composer stan:baseline`).
+
+Кеши всех quality-инструментов (CS Fixer, PHPStan, Rector, PHPUnit) лежат в `src/var/`
+и не попадают в Git и Docker-контекст.
 
 ### Baseline
 

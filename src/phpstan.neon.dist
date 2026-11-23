@@ -14,7 +14,7 @@ parameters:
 
     checkModelProperties: true
     parseModelCastsMethod: true
-    tmpDir: storage/framework/cache/phpstan
+    tmpDir: var/phpstan
 
     parallel:
         maximumNumberOfProcesses: 4

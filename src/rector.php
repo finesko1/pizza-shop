@@ -19,7 +19,7 @@ return RectorConfig::configure()
         __DIR__ . '/bootstrap/cache',
     ])
     ->withPhpVersion(PhpVersion::PHP_84)
-    ->withCache(__DIR__ . '/storage/framework/cache/rector')
+    ->withCache(__DIR__ . '/var/rector')
     ->withConfiguredRule(AddNamedArgumentsRector::class, [
         AddNamedArgumentsRector::STRATEGY => DefaultStrategy::class,
         AddNamedArgumentsRector::ALLOW_NAMED_VARIADIC_ARGUMENTS => false,
