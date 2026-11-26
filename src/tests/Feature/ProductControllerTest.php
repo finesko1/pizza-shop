@@ -18,12 +18,9 @@ class ProductControllerTest extends TestCase
     // GET /api/products (index)
     public function test_index_returns_paginated_products_list(): void
     {
-        $token = $this->tokenFor(User::factory()->user()->create());
-
         Product::factory()->count(8)->create();
 
-        $response = $this->withToken($token)
-            ->getJson('/api/products?limit=2&page=1');
+        $response = $this->getJson('/api/products?limit=2&page=1');
 
         $response
             ->assertOk()
@@ -43,10 +40,7 @@ class ProductControllerTest extends TestCase
     // GET /api/products (index)
     public function test_index_fails_with_invalid_pagination_parameters(): void
     {
-        $token = $this->tokenFor(User::factory()->user()->create());
-
-        $this->withToken($token)
-            ->getJson('/api/products?limit=-10&page=abc')
+        $this->getJson('/api/products?limit=-10&page=abc')
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['limit', 'page']);
     }
@@ -87,11 +81,9 @@ class ProductControllerTest extends TestCase
     // GET /api/products/{product} (show)
     public function test_show_returns_single_product(): void
     {
-        $token = $this->tokenFor(User::factory()->user()->create());
         $product = Product::factory()->pepperoni()->create();
 
-        $response = $this->withToken($token)
-            ->getJson("/api/products/{$product->id}");
+        $response = $this->getJson("/api/products/{$product->id}");
 
         $response
             ->assertOk()
@@ -106,23 +98,17 @@ class ProductControllerTest extends TestCase
     // GET /api/products/{product} (show)
     public function test_show_returns_404_for_non_existent_or_invalid_bigint_id(): void
     {
-        $token = $this->tokenFor(User::factory()->user()->create());
-
-        $this->withToken($token)
-            ->getJson('/api/products/999999')
+        $this->getJson('/api/products/999999')
             ->assertNotFound();
 
-        $this->withToken($token)
-            ->getJson('/api/products/9223372036854775808')
+        $this->getJson('/api/products/9223372036854775808')
             ->assertNotFound();
 
         $product = Product::factory()->create();
-        $this->withToken($token)
-            ->getJson("/api/products/000{$product->id}")
+        $this->getJson("/api/products/000{$product->id}")
             ->assertNotFound();
 
-        $this->withToken($token)
-            ->getJson('/api/products/abc')
+        $this->getJson('/api/products/abc')
             ->assertNotFound();
     }
 
@@ -163,6 +149,21 @@ class ProductControllerTest extends TestCase
             ->assertJsonValidationErrors(['price']);
     }
 
+    // POST/PATCH/DELETE /api/products/{product} (update)
+    public function test_guest_without_token_cant_edit_product(): void
+    {
+        $product = Product::factory()->pepperoni()->create();
+
+        $this->postJson("/api/products", ProductPayload::pepperoni())
+            ->assertUnauthorized();
+
+        $this->patchJson("/api/products/{$product->id}", ProductPayload::margaritaUpdate())
+            ->assertUnauthorized();
+
+        $this->delete("/api/products/{$product->id}")
+            ->assertUnauthorized();
+    }
+
     // DELETE /api/products/{product} (destroy)
     public function test_destroy_deletes_existing_product(): void
     {
@@ -190,15 +191,31 @@ class ProductControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_unauthorized_user_cant_read_products_catalog(): void
+    public function test_unauthorized_user_can_read_products_catalog(): void
     {
         $product = Product::factory()->pepperoni()->create();
 
         $this->getJson('/api/products')
-            ->assertUnauthorized();
+            ->assertOk();
 
         $this->getJson("/api/products/{$product->id}")
+            ->assertOk();
+    }
+
+    public function test_guest_without_token_cant_edit_products_catalog(): void
+    {
+        $product = Product::factory()->pepperoni()->create();
+
+        $this->postJson('/api/products', ProductPayload::pepperoni())
             ->assertUnauthorized();
+
+        $this->patchJson("/api/products/{$product->id}", ProductPayload::margaritaUpdate())
+            ->assertUnauthorized();
+
+        $this->deleteJson("/api/products/{$product->id}")
+            ->assertUnauthorized();
+
+        $this->assertDatabaseCount('products', 1);
     }
 
     #[DataProvider('readableRoles')]
@@ -227,7 +244,7 @@ class ProductControllerTest extends TestCase
             ->assertForbidden();
 
         $this->withToken($token) // update
-            ->putJson("/api/products/{$product->id}", ProductPayload::margaritaUpdate())
+            ->patchJson("/api/products/{$product->id}", ProductPayload::margaritaUpdate())
             ->assertForbidden();
 
         $this->withToken($token) // destroy
@@ -248,7 +265,7 @@ class ProductControllerTest extends TestCase
             ->assertCreated();
 
         $this->withToken($token) // update
-            ->putJson("/api/products/{$product->id}", ProductPayload::margaritaUpdate())
+            ->patchJson("/api/products/{$product->id}", ProductPayload::margaritaUpdate())
             ->assertOk();
 
         $this->withToken($token) // destroy

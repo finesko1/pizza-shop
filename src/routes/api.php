@@ -11,6 +11,9 @@ Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
 });
 
+Route::apiResource('products', ProductController::class)
+    ->only(['index', 'show']);
+
 Route::middleware('auth:api')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
@@ -18,6 +21,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('refresh', [AuthController::class, 'refresh']);
     });
 
-    Route::apiResource('products', ProductController::class);
+    Route::apiResource('products', ProductController::class)
+        ->except(['index', 'show']);
 });
 
