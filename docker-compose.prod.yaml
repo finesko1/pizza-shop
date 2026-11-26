@@ -65,7 +65,7 @@ services:
                 NGINX_VERSION: ${NGINX_VERSION:-1.30}
                 RELEASE_IMAGE: app-prod:${RELEASE_TAG:-latest}
         volumes:
-            - ./docker/nginx/upstreams:/etc/nginx/upstreams
+            - ./docker/nginx/upstreams:/etc/nginx/upstreams:z
         restart: unless-stopped
 
     db:
