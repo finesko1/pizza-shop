@@ -76,7 +76,7 @@ php artisan tinker
 ```bash
 make test-init    # первый раз: подготовка (composer, APP_KEY, миграции) + запуск тестов
 make test         # обычный запуск всех тестов
-make test-shell   # интерактивный shell для быстрых перезапусков
+make shell-test   # интерактивный shell для быстрых перезапусков
 make test-clean   # удалить тестовый проект вместе с volume
 ```
 
@@ -183,10 +183,10 @@ php artisan config:cache
 
 Публичные:
 
-| Метод | Путь | Тело |
-|---|---|---|
-| `POST` | `/api/register` | `name`, `email`, `password`, `password_confirmation` |
-| `POST` | `/api/login` | `email`, `password` |
+| Метод | Путь                 | Тело |
+|---|----------------------|---|
+| `POST` | `/api/auth/register` | `name`, `email`, `password`, `password_confirmation` |
+| `POST` | `/api/auth/login`    | `email`, `password` |
 
 Защищённые (`Authorization: Bearer <token>`):
 
