@@ -21,7 +21,7 @@ final readonly class AuthService
 
     public function register(RegisterDTO $data): string
     {
-        $user = User::create($data->toArray());
+        $user = User::create($data->toArray())->refresh();
 
         return $this->guard()->login($user);
     }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRoleEnum;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\InteractsWithApi;
@@ -29,7 +30,8 @@ class AuthControllerTest extends TestCase
                 'token_type',
                 'expires_in',
                 'user' => ['id', 'name', 'email', 'role']
-            ]);
+            ])
+            ->assertJsonPath('user.role', UserRoleEnum::Guest->value);
 
         $this->assertNotEmpty($response->json('access_token'));
 
@@ -37,11 +39,20 @@ class AuthControllerTest extends TestCase
             ->getJson('/api/auth/me')
             ->assertOk()
             ->assertJsonPath('name', $payload['name'])
-            ->assertJsonPath('email', $payload['email']);
+            ->assertJsonPath('email', $payload['email'])
+            ->assertJsonPath('role', UserRoleEnum::Guest->value);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $payload['email'],
+            'password' => $payload['password'],
+        ])
+            ->assertOk()
+            ->assertJsonPath('user.role', UserRoleEnum::Guest->value);
 
         $this->assertDatabaseHas('users', [
             'name' => $payload['name'],
             'email' => $payload['email'],
+            'role' => UserRoleEnum::Guest->value,
         ]);
     }
 
