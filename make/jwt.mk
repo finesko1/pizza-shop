@@ -21,11 +21,18 @@ jwt-check:
 
 jwt-generate:
 	@echo ">>> [jwt] Проверка текущего JWT-секрета..."
-	@if $(MAKE) --no-print-directory jwt-check; then \
+	@if [ ! -f src/.env ]; then \
+		echo ">>> [jwt] src/.env отсутствует. Сначала выполните: make setup"; \
+		exit 1; \
+	fi; \
+	SECRET=$$(grep -E '^JWT_SECRET=' src/.env | tail -n1 | cut -d '=' -f2- | tr -d '\r' | sed -e 's/^"//' -e 's/"$$//' -e "s/^'//" -e "s/'$$//"); \
+	if [ -n "$$SECRET" ]; then \
 		if [ "$(FORCE)" = "1" ]; then \
-			echo ">>> [jwt] FORCE=1: перегенерация без подтверждения."; \
+			echo ">>> [jwt] FORCE=1: перегенерация существующего JWT_SECRET без подтверждения."; \
 		else \
-			printf ">>> [jwt] Текущий JWT_SECRET корректен. Перегенерировать? Все выданные токены станут недействительны. [y/N]: "; \
+			echo ">>> [jwt] В src/.env уже задан JWT_SECRET."; \
+			echo ">>> [jwt] Перегенерация сделает все ранее выданные токены недействительными."; \
+			printf ">>> [jwt] Перегенерировать? [y/N]: "; \
 			read -r ANSWER || ANSWER=""; \
 			case "$$ANSWER" in \
 				y|Y|yes|YES|Yes) echo ">>> [jwt] Подтверждено." ;; \
@@ -33,7 +40,7 @@ jwt-generate:
 			esac; \
 		fi; \
 	else \
-		echo ">>> [jwt] Корректный JWT_SECRET не найден — генерируем новый без подтверждения."; \
+		echo ">>> [jwt] JWT_SECRET не задан — генерируем новый без подтверждения."; \
 	fi; \
 	echo ">>> [jwt] Генерация JWT_SECRET..."; \
 	$(COMPOSE_DEV) --progress quiet --profile tools run --rm artisan jwt:secret --force; \

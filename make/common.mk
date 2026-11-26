@@ -70,5 +70,5 @@ help:
 	@echo "    make test-shell  	- Shell в тестовом контейнере (быстрый перезапуск тестов)"
 	@echo "	   make test-clean		- Завершение тестирования"
 	@echo ""
-	@echo "    make jwt-generate    - сгенерировать JWT_SECRET (спросит подтверждение, если текущий корректен)"
+	@echo "    make jwt-generate    - сгенерировать JWT_SECRET (спросит подтверждение, если уже задан)"
 	@echo "	   make jwt-check   	- проверка токена"
