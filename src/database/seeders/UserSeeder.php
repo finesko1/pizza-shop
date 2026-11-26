@@ -14,6 +14,14 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        if (! app()->environment(['local', 'testing'])) {
+            $this->command?->warn(
+                'UserSeeder: демонстрационные аккаунты создаются только в local/testing.'
+            );
+
+            return;
+        }
+
         User::query()->firstOrCreate(
             ['name' => 'admin'],
             [
@@ -41,8 +49,6 @@ class UserSeeder extends Seeder
             ]
         );
 
-        if (app()->environment(['local', 'testing'])) {
-            User::factory()->count(10)->create();
-        }
+        User::factory()->count(10)->create();
     }
 }

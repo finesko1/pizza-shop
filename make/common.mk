@@ -21,7 +21,7 @@ endef
 # Список команд
 .PHONY: help setup check-env init-upstream reset-upstream \
         dev-init dev-setup dev-up dev-down dev-build dev-logs \
-        prod-up prod-down prod-build prod-logs \
+        prod-up prod-down prod-build prod-logs prod-create-admin \
         deploy shell-prod \
         shell-dev build \
         test test-init test-build test-prepare test-clean test-shell \
@@ -52,6 +52,7 @@ help:
 	@echo "    make prod-up         - Запустить prod-контейнеры (активный blue/green)"
 	@echo "    make prod-down       - Остановить и удалить prod-контейнеры"
 	@echo "    make prod-build      - Пересобрать образ активного prod-контейнера"
+	@echo "    make prod-create-admin - Создание администратора"
 	@echo "    make prod-logs       - Показать логи prod (-f --tail=100)"
 	@echo ""
 	@echo "  Blue-green деплой:"

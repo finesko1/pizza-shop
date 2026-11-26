@@ -25,6 +25,10 @@ prod-logs:
 	@echo ">>> [prod] Логи prod (follow, tail=100). Ctrl+C для выхода."
 	$(COMPOSE_PROD) logs -f --tail=100
 
+prod-create-admin:
+	@echo ">>> [prod] Создание администратора..."
+	@$(COMPOSE_PROD) --profile tools run --rm artisan app:create-admin
+
 # Blue-green deploy
 deploy: check-env init-upstream
 	@echo ">>> [deploy] Активный контейнер: $(ACTIVE)"
