@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Auth;
 
-use App\DTO\LoginDTO;
-use App\DTO\RegisterDTO;
 use App\Models\User;
+use App\Services\Auth\DTO\LoginDTO;
+use App\Services\Auth\DTO\RegisterDTO;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Tymon\JWTAuth\JWTGuard;
 

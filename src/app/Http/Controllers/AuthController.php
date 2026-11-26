@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\DTO\LoginDTO;
-use App\DTO\RegisterDTO;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
-use App\Services\AuthService;
+use App\Services\Auth\AuthService;
+use App\Services\Auth\DTO\RegisterDTO;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
@@ -20,7 +19,7 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        $token = $this->auth->login(LoginDTO::fromArray($request->validated()));
+        $token = $this->auth->login($request->toDTO());
 
         if ($token === null) {
             return response()->json(['error' => 'Unauthorized'], 401);
