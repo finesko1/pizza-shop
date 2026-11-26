@@ -40,7 +40,11 @@ final readonly class AuthService
 
     public function refresh(): string
     {
-        return $this->guard()->refresh();
+        $guard = $this->guard();
+        $token = $guard->refresh();
+        $guard->setToken($token);
+
+        return $token;
     }
 
     public function tokenTtl(): int

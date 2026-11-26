@@ -4,11 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\InteractsWithApi;
 use Tests\TestCase;
 
 class AuthControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use InteractsWithApi, RefreshDatabase;
 
     // POST /api/auth/register (register)
     public function test_register_with_correct_credentials(): void
@@ -114,5 +115,56 @@ class AuthControllerTest extends TestCase
         $response = $this->postJson('api/auth/login', $payload);
 
         $response->assertUnauthorized();
+    }
+
+    public function test_refresh_works_with_expired_access_token_within_refresh_ttl(): void
+    {
+        $user = User::factory()->user()->create();
+        $oldToken = $this->tokenFor($user);
+
+        $this->travel(61)->minutes();
+
+        $response = $this->withToken($oldToken)
+            ->postJson('/api/auth/refresh');
+
+        $response
+            ->assertOk()
+            ->assertJsonStructure([
+                'access_token',
+                'token_type',
+                'expires_in',
+                'user' => ['id', 'name', 'email', 'role'],
+            ])
+            ->assertJsonPath('user.id', $user->id);
+
+        $newToken = $response->json('access_token');
+
+        $this->assertNotSame($oldToken, $newToken);
+
+        $this->withToken($newToken)
+            ->getJson('/api/auth/me')
+            ->assertOk()
+            ->assertJsonPath('id', $user->id);
+
+        $this->travelBack();
+    }
+
+    public function test_refresh_without_token_returns_401(): void
+    {
+        $this->postJson('/api/auth/refresh')
+            ->assertUnauthorized();
+    }
+
+    public function test_refresh_fails_after_refresh_ttl(): void
+    {
+        $token = $this->tokenFor(User::factory()->user()->create());
+
+        $this->travel(20161)->minutes();
+
+        $this->withToken($token)
+            ->postJson('/api/auth/refresh')
+            ->assertUnauthorized();
+
+        $this->travelBack();
     }
 }
