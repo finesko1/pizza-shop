@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\DTO\LoginDTO;
-use App\DTO\RegisterDTO;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
@@ -33,7 +31,7 @@ final class AuthController extends Controller
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        $token = $this->auth->register(data: RegisterDTO::fromArray(data: $request->validated()));
+        $token = $this->auth->register(data: $request->toDTO());
 
         return $this->respondWithToken(token: $token, user: $this->auth->user(), status: Response::HTTP_CREATED);
     }
