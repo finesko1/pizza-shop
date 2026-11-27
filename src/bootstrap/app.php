@@ -20,7 +20,7 @@ return Application::configure(basePath: dirname(path: __DIR__))
     )
     ->withMiddleware(callback: static function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(
-            fn (Request $request) => $request->is('api/*') ? null : '/login',
+            static fn(Request $request) => $request->is('api/*') ? null : '/login',
         );
     })
     ->withExceptions(using: static function (Exceptions $exceptions): void {
