@@ -16,6 +16,7 @@ services:
             - ./src/.env
         environment:
             - APP_ENV=testing
+            - DB_URL=
             - DB_CONNECTION=pgsql
             - DB_HOST=db-test
             - DB_PORT=5432
