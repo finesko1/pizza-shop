@@ -18,7 +18,11 @@ return Application::configure(basePath: dirname(path: __DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(callback: static function (Middleware $middleware): void {})
+    ->withMiddleware(callback: static function (Middleware $middleware): void {
+        $middleware->redirectGuestsTo(
+            fn (Request $request) => $request->is('api/*') ? null : '/login',
+        );
+    })
     ->withExceptions(using: static function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             callback: static fn(Request $request, Throwable $e) => $request->is('api/*') || $request->expectsJson(),

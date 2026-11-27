@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Services\Auth\DTO\LoginDTO;
