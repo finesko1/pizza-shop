@@ -1,5 +1,3 @@
-name: pizza-shop-test
-
 services:
     artisan:
         image: app-dev:latest
@@ -10,12 +8,13 @@ services:
             args:
                 PHP_VERSION: ${PHP_VERSION:-8.4}
         volumes:
-            - ./src:/var/www/html
+            - ./src:/var/www/html:z
         working_dir: /var/www/html
         env_file:
             - ./src/.env
         environment:
             - APP_ENV=testing
+            - DB_URL=
             - DB_CONNECTION=pgsql
             - DB_HOST=db-test
             - DB_PORT=5432

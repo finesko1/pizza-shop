@@ -76,7 +76,7 @@ php artisan tinker
 ```bash
 make test-init    # первый раз: подготовка (composer, APP_KEY, миграции) + запуск тестов
 make test         # обычный запуск всех тестов
-make test-shell   # интерактивный shell для быстрых перезапусков
+make shell-test   # интерактивный shell для быстрых перезапусков
 make test-clean   # удалить тестовый проект вместе с volume
 ```
 
@@ -112,9 +112,11 @@ make jwt-generate   # сгенерировать новый JWT_SECRET
 
 `make jwt-generate`:
 
-- если текущий секрет корректен — спросит подтверждение `[y/N]`, по умолчанию отменит;
-- если секрет пустой или нерабочий — сгенерирует без вопроса;
+- если `JWT_SECRET` уже задан — спросит подтверждение `[y/N]`, по умолчанию отменит;
+- если `JWT_SECRET` пустой — сгенерирует без вопроса;
 - `make jwt-generate FORCE=1` — перегенерировать без подтверждения.
+
+Подтверждение требуется и тогда, когда `jwt-check` не смог проверить секрет (например, контейнеры не запущены): наличие секрета определяется по `src/.env`, а не по результату проверки.
 
 После смены секрета **все ранее выданные токены становятся недействительными**.
 
@@ -181,10 +183,10 @@ php artisan config:cache
 
 Публичные:
 
-| Метод | Путь | Тело |
-|---|---|---|
-| `POST` | `/api/register` | `name`, `email`, `password`, `password_confirmation` |
-| `POST` | `/api/login` | `email`, `password` |
+| Метод | Путь                 | Тело |
+|---|----------------------|---|
+| `POST` | `/api/auth/register` | `name`, `email`, `password`, `password_confirmation` |
+| `POST` | `/api/auth/login`    | `email`, `password` |
 
 Защищённые (`Authorization: Bearer <token>`):
 
@@ -271,7 +273,7 @@ curl -X POST http://127.0.0.1:8080/api/login \
 ## Если что-то не работает
 
 - **Порт занят** — измените `NGINX_PORT`/`DB_PORT` в корневом `.env` и выполните `make dev-up`.
-- **`jwt-check` падает** — выполните `make jwt-generate`; проверьте, что контейнеры запущены (`make dev-up`).
+- **`jwt-check` падает** — проверьте, что контейнеры запущены (`make dev-up`). Перегенерация: `make jwt-generate` (спросит подтверждение) или `make jwt-generate FORCE=1`.
 - **Нужны логи** — `make dev-logs` или `make prod-logs`.
 - **Сбросить тесты** — `make test-clean`, затем снова `make test-init`.
 - **Полная пересборка образов** — `make build` (dev и prod, `--no-cache`, занимает время).

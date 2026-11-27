@@ -8,6 +8,14 @@ use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends PublicFormRequest
 {
+    public function authorize(): bool
+    {
+        $product = $this->route('product');
+
+        return $product instanceof Product
+            && ($this->user()?->can('update', $product) ?? false);
+    }
+
     public function rules(): array
     {
         return [

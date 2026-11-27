@@ -11,11 +11,28 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ProductFactory extends Factory
 {
-    /**
-     * Создание фикстуры Product
-     *
-     * @return array<string, mixed>
-     */
+    public function pepperoni(): static
+    {
+        return $this->state([
+            'name' => 'Пицца Пепперони',
+            'description' => 'Острая пепперони, моцарелла, томатный соус',
+            'price' => 690_00,
+            'weight' => 550,
+            'category' => ProductCategoryEnum::Pizza,
+        ]);
+    }
+
+    public function margarita(): static
+    {
+        return $this->state([
+            'name' => 'Пицца Маргарита',
+            'description' => null,
+            'price' => 900_00,
+            'weight' => 900,
+            'category' => ProductCategoryEnum::Pizza,
+        ]);
+    }
+
     public function definition(): array
     {
         return [

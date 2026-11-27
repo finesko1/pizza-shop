@@ -21,10 +21,10 @@ endef
 # Список команд
 .PHONY: help setup check-env init-upstream reset-upstream \
         dev-init dev-setup dev-up dev-down dev-build dev-logs \
-        prod-up prod-down prod-build prod-logs \
+        prod-up prod-down prod-build prod-logs prod-create-admin \
         deploy shell-prod \
         shell-dev build \
-        test test-init test-build test-prepare test-clean test-shell \
+        test test-init test-build test-prepare test-clean shell-test \
         jwt-check jwt-generate
 
 # Описание команд
@@ -52,6 +52,7 @@ help:
 	@echo "    make prod-up         - Запустить prod-контейнеры (активный blue/green)"
 	@echo "    make prod-down       - Остановить и удалить prod-контейнеры"
 	@echo "    make prod-build      - Пересобрать образ активного prod-контейнера"
+	@echo "    make prod-create-admin - Создание администратора"
 	@echo "    make prod-logs       - Показать логи prod (-f --tail=100)"
 	@echo ""
 	@echo "  Blue-green деплой:"
@@ -61,12 +62,12 @@ help:
 	@echo "  Artisan:"
 	@echo "    make shell-prod      - Зайти в shell prod контейнера artisan"
 	@echo "    make shell-dev       - Зайти в shell dev  контейнера artisan"
+	@echo "    make shell-test  	- Shell в тестовом контейнере (быстрый перезапуск тестов)"
 	@echo ""
 	@echo "  Application testing:"
 	@echo "    make test-init     	- Сборка и запуск тестов"
 	@echo "    make test     		- Feature и Unit тесты"
 	@echo "    make test-build     	- Сборка образа"
-	@echo "    make test-shell  	- Shell в тестовом контейнере (быстрый перезапуск тестов)"
 	@echo "	   make test-clean		- Завершение тестирования"
 	@echo ""
 	@echo "    make jwt-generate    - сгенерировать JWT_SECRET (спросит подтверждение, если текущий корректен)"

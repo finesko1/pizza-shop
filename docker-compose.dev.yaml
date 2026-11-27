@@ -9,7 +9,7 @@ services:
             args:
                 PHP_VERSION: ${PHP_VERSION:-8.4}
         volumes:
-            - ./src:/var/www/html
+            - ./src:/var/www/html:z
         env_file:
             - ./src/.env
         environment:
@@ -30,7 +30,7 @@ services:
             args:
                 PHP_VERSION: ${PHP_VERSION:-8.4}
         volumes:
-            - ./src:/var/www/html
+            - ./src:/var/www/html:z
         env_file:
             - ./src/.env
         environment:
@@ -50,7 +50,7 @@ services:
             args:
                 PHP_VERSION: ${PHP_VERSION:-8.4}
         volumes:
-            - ./src:/var/www/html
+            - ./src:/var/www/html:z
         working_dir: /var/www/html
         environment:
             - APP_ENV=local
@@ -66,13 +66,13 @@ services:
     nginx:
         image: nginx:${NGINX_VERSION:-1.30}-alpine
         volumes:
-            - ./docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
-            - ./docker/nginx/upstreams:/etc/nginx/upstreams
-            - ./src/public:/var/www/html/public:ro
+            - ./docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro,z
+            - ./docker/nginx/upstreams:/etc/nginx/upstreams:z
+            - ./src/public:/var/www/html/public:ro,z
 
     db:
         ports:
             - "${DB_PORT:-5432}:5432"
         volumes:
-            - ./src/storage/database:/var/lib/postgresql/data
+            - ./src/storage/database:/var/lib/postgresql/data:z
         command: postgres -c fsync=off
