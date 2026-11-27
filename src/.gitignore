@@ -15,11 +15,9 @@ Thumbs.db
 /.cursor/
 /.idea/
 /.nova/
-/.phpunit.cache/
 /.vscode/
 /.zed/
 /.phpactor.json
-/.phpunit.result.cache
 
 # Laravel
 /auth.json
@@ -42,3 +40,13 @@ _ide_helper_models.php
 # Homestead
 Homestead.json
 Homestead.yaml
+
+# PHP CS Fixer configuration
+/.php-cs-fixer.php
+
+# Local tool configs
+/.phpstan.neon
+
+# Tool caches (CS Fixer, PHPStan, Rector, PHPUnit)
+/var/*
+!/var/.gitignore

@@ -1,0 +1,164 @@
+stages:
+  - build
+  - code-quality
+
+variables:
+  PHP_VERSION: "8.4"
+  POSTGRES_VERSION: "17"
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+  IMAGE_PROD: "$CI_REGISTRY_IMAGE:prod-$CI_COMMIT_SHORT_SHA"
+  IMAGE_CI: "$CI_REGISTRY_IMAGE:ci-$CI_COMMIT_SHORT_SHA"
+  GIT_STRATEGY: clone
+  GIT_DEPTH: "1"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+default:
+  interruptible: true
+  retry:
+    max: 1
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+
+.docker:
+  image: docker:27-cli
+  services:
+    - name: docker:27-dind
+      command: ["--tls=false"]
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+
+# Production image
+build:prod:
+  extends: .docker
+  stage: build
+  script:
+    - |
+      export HASH=$(find docker/php src \
+        ! -path 'src/vendor/*' \
+        ! -path 'src/node_modules/*' \
+        ! -path 'src/var/*' \
+        ! -path 'src/storage/*' \
+        ! -path 'src/bootstrap/cache/*' \
+        ! -path 'src/public/build/*' \
+        ! -name '.env' \
+        ! -name '_ide_helper.php' \
+        ! -name '_ide_helper_models.php' \
+        ! -name '.php-cs-fixer.cache' \
+        ! -name '.phpunit.result.cache' \
+        -type f -print0 | xargs -0 sha256sum | sort | sha256sum | cut -c1-16)
+    - HASH_IMAGE="$CI_REGISTRY_IMAGE:prod-$HASH"
+    - |
+      echo "Production build hash: $HASH"
+    - |
+      if docker manifest inspect "$IMAGE_PROD" >/dev/null 2>&1; then
+        echo "Reusing existing image $IMAGE_PROD"
+      elif docker manifest inspect "$HASH_IMAGE" >/dev/null 2>&1; then
+        echo "Reusing cached build $HASH_IMAGE"
+        docker pull "$HASH_IMAGE"
+        docker tag "$HASH_IMAGE" "$IMAGE_PROD"
+        docker push "$IMAGE_PROD"
+      else
+        docker buildx create --use --name ci-builder --driver docker-container 2>/dev/null || true
+        docker buildx build \
+          --target production \
+          --build-arg PHP_VERSION="$PHP_VERSION" \
+          --cache-from type=registry,ref="$CI_REGISTRY_IMAGE:cache-prod" \
+          --cache-to type=registry,ref="$CI_REGISTRY_IMAGE:cache-prod",mode=max \
+          --push \
+          -t "$HASH_IMAGE" \
+          -t "$IMAGE_PROD" \
+          -f docker/php/Dockerfile \
+          .
+      fi
+
+# Development image
+build:ci:
+  extends: .docker
+  stage: build
+  script:
+    - export HASH=$(find docker/php -type f -print0 | xargs -0 sha256sum | sort | sha256sum | cut -c1-16)
+    - HASH_IMAGE="$CI_REGISTRY_IMAGE:ci-$HASH"
+    - |
+      echo "CI build hash: $HASH"
+    - |
+      if docker manifest inspect "$IMAGE_CI" >/dev/null 2>&1; then
+        echo "Reusing existing image $IMAGE_CI"
+      elif docker manifest inspect "$HASH_IMAGE" >/dev/null 2>&1; then
+        echo "Reusing cached build $HASH_IMAGE"
+        docker pull "$HASH_IMAGE"
+        docker tag "$HASH_IMAGE" "$IMAGE_CI"
+        docker push "$IMAGE_CI"
+      else
+        docker buildx create --use --name ci-builder --driver docker-container 2>/dev/null || true
+        docker buildx build \
+          --target development \
+          --build-arg PHP_VERSION="$PHP_VERSION" \
+          --cache-from type=registry,ref="$CI_REGISTRY_IMAGE:cache-ci" \
+          --cache-to type=registry,ref="$CI_REGISTRY_IMAGE:cache-ci",mode=max \
+          --push \
+          -t "$HASH_IMAGE" \
+          -t "$IMAGE_CI" \
+          -f docker/php/Dockerfile \
+          .
+      fi
+
+.quality:
+  stage: code-quality
+  image:
+    name: $IMAGE_CI
+    entrypoint: [""]
+  needs: ["build:ci"]
+  variables:
+    JWT_SECRET: ci-only-jwt-secret-0123456789abcdef
+    XDEBUG_MODE: "off"
+  cache:
+    key:
+      files:
+        - src/composer.lock
+      prefix: $CI_JOB_NAME
+    paths:
+      - src/vendor/
+  before_script:
+    - cp src/.env.example src/.env
+    - (cd src && composer install --no-interaction --prefer-dist --no-progress)
+    - (cd src && php artisan key:generate --force --no-interaction)
+
+test:
+  extends: .quality
+  services:
+    - name: postgres:${POSTGRES_VERSION}-alpine
+      alias: db-test
+      variables:
+        POSTGRES_DB: pizza_shop_test
+        POSTGRES_USER: root
+        POSTGRES_PASSWORD: currentPassword
+  script:
+    - >
+      for i in $(seq 1 30); do
+        php -r 'exit(@pg_connect("host=db-test port=5432 dbname=pizza_shop_test user=root password=currentPassword") ? 0 : 1);' && break;
+        sleep 1;
+      done
+    - cd src && php artisan test
+
+php-cs-fixer:
+  extends: .quality
+  script:
+    - cd src && composer cs
+
+phpstan:
+  extends: .quality
+  script:
+    - cd src && composer stan
+
+rector:
+  extends: .quality
+  script:
+    - cd src && composer rector

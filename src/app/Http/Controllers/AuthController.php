@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
@@ -7,11 +9,10 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\Auth\AuthService;
-use App\Services\Auth\DTO\RegisterDTO;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
-class AuthController extends Controller
+final class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthService $auth,
@@ -19,20 +20,20 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        $token = $this->auth->login($request->toDTO());
+        $token = $this->auth->login(data: $request->toDTO());
 
         if ($token === null) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return $this->respondWithToken($token, $this->auth->user());
+        return $this->respondWithToken(token: $token, user: $this->auth->user());
     }
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        $token = $this->auth->register(RegisterDTO::fromArray($request->validated()));
+        $token = $this->auth->register(data: $request->toDTO());
 
-        return $this->respondWithToken($token, $this->auth->user(), Response::HTTP_CREATED);
+        return $this->respondWithToken(token: $token, user: $this->auth->user(), status: Response::HTTP_CREATED);
     }
 
     public function me(): JsonResponse
@@ -49,7 +50,7 @@ class AuthController extends Controller
 
     public function refresh(): JsonResponse
     {
-        return $this->respondWithToken($this->auth->refresh(), $this->auth->user());
+        return $this->respondWithToken(token: $this->auth->refresh(), user: $this->auth->user());
     }
 
     protected function respondWithToken(string $token, ?User $user, int $status = 200): JsonResponse
@@ -58,7 +59,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => $this->auth->tokenTtl(),
-            'user' => $user ? new UserResource($user) : null,
+            'user' => $user ? new UserResource(resource: $user) : null,
         ], $status);
     }
 }

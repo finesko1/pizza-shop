@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Services\Auth\DTO\LoginDTO;
 
-class LoginRequest extends PublicFormRequest
+final class LoginRequest extends PublicFormRequest
 {
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [
@@ -16,6 +21,6 @@ class LoginRequest extends PublicFormRequest
 
     public function toDTO(): LoginDTO
     {
-        return LoginDTO::fromArray($this->validated());
+        return LoginDTO::fromArray(data: $this->validated());
     }
 }

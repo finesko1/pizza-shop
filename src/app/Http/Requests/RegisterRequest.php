@@ -1,12 +1,16 @@
 <?php
 
-namespace App\Http\Requests;
+declare(strict_types=1);
 
+namespace App\Http\Requests;
 
 use App\Services\Auth\DTO\RegisterDTO;
 
-class RegisterRequest extends PublicFormRequest
+final class RegisterRequest extends PublicFormRequest
 {
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [
@@ -18,6 +22,6 @@ class RegisterRequest extends PublicFormRequest
 
     public function toDTO(): RegisterDTO
     {
-        return RegisterDTO::fromArray($this->validated());
+        return RegisterDTO::fromArray(data: $this->validated());
     }
 }

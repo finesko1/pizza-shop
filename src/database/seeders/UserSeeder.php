@@ -1,13 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Enums\UserRoleEnum;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class UserSeeder extends Seeder
+final class UserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -16,7 +17,7 @@ class UserSeeder extends Seeder
     {
         if (! app()->environment(['local', 'testing'])) {
             $this->command?->warn(
-                'UserSeeder: демонстрационные аккаунты создаются только в local/testing.'
+                'UserSeeder: демонстрационные аккаунты создаются только в local/testing.',
             );
 
             return;
@@ -27,8 +28,8 @@ class UserSeeder extends Seeder
             [
                 'email'     => 'admin@mail.ru',
                 'role'      => UserRoleEnum::Admin,
-                'password'  => 'adminpassword'
-            ]
+                'password'  => 'adminpassword',
+            ],
         );
 
         User::query()->firstOrCreate(
@@ -36,8 +37,8 @@ class UserSeeder extends Seeder
             [
                 'email'     => 'user@mail.ru',
                 'role'      => UserRoleEnum::User,
-                'password'  => 'userpassword'
-            ]
+                'password'  => 'userpassword',
+            ],
         );
 
         User::query()->firstOrCreate(
@@ -45,8 +46,8 @@ class UserSeeder extends Seeder
             [
                 'email'     => 'guest@mail.ru',
                 'role'      => UserRoleEnum::Guest,
-                'password'  => 'guestpassword'
-            ]
+                'password'  => 'guestpassword',
+            ],
         );
 
         User::factory()->count(10)->create();

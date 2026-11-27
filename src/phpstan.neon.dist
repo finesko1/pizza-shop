@@ -1,0 +1,22 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/nesbot/carbon/extension.neon
+
+parameters:
+    level: 6
+
+    paths:
+        - app
+        - bootstrap
+        - database
+        - routes
+        - tests
+
+    checkModelProperties: true
+    parseModelCastsMethod: true
+    tmpDir: var/phpstan
+
+    parallel:
+        maximumNumberOfProcesses: 4
+
+    editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'

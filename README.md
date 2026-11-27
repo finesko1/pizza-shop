@@ -55,6 +55,9 @@ make dev-init
 | `make dev-build` | Пересобрать dev-образы |
 | `make dev-init` | Полный первый запуск dev (setup + зависимости + миграции + JWT + запуск) |
 | `make shell-dev` | Shell (`sh`) в контейнере с artisan: `php artisan ...` |
+| `make cs` / `make cs-fix` | Проверить / исправить стиль кода (PHP CS Fixer) |
+| `make stan` | Статический анализ (PHPStan + Larastan) |
+| `make rector` / `make rector-fix` | Проверить / применить рефакторинг (Rector) |
 | `make help` | Список всех команд |
 
 Внутри `make shell-dev` доступны привычные команды:
@@ -98,6 +101,136 @@ php artisan test --stop-on-failure
 
 > Тестовое окружение задаётся в `docker-compose.test.yaml` (`DB_HOST=db-test`, `pizza_shop_test`),
 > а PHPUnit-настройки — в `src/phpunit.xml`.
+
+---
+
+## Стиль кода
+
+Код проверяется **PHP CS Fixer** со стандартом **PHPyhCodingStandard**
+(конфиг — `src/.php-cs-fixer.dist.php`). Команды выполняются в dev-контейнере:
+
+```bash
+make cs       # проверить стиль (ничего не меняет)
+make cs-fix   # автоматически исправить
+```
+
+Скрипты продублированы в `src/composer.json` (`composer cs` / `composer cs:fix`),
+поэтому их можно запускать и напрямую на хосте, если установлены PHP и Composer.
+
+---
+
+## Статический анализ
+
+Код проверяется **PHPStan** (level 6) вместе с **Larastan** — расширением,
+которое объясняет PHPStan магию Laravel (Eloquent-модели, фасады, контейнер,
+`FormRequest`, ресурсы). Конфиг — `src/phpstan.neon.dist`.
+
+```bash
+make stan       # запустить анализ
+make stan-baseline  # зафиксировать текущие ошибки в baseline
+```
+
+Анализируются `app`, `bootstrap`, `database`, `routes` и `tests`. Larastan
+поднимает приложение, поэтому нужен `src/.env` с `APP_KEY`, но **база данных
+не требуется** — миграции читаются с диска.
+
+Полезные параметры конфига:
+
+| Параметр | Зачем |
+|---|---|
+| `checkModelProperties: true` | проверять ключи, передаваемые в `create()`/`update()` |
+| `parseModelCastsMethod: true` | выводить типы из тела `casts()` (enum-касты и т.п.) |
+| `tmpDir` | кэш PHPStan в `var/phpstan` |
+
+Скрипты продублированы в `src/composer.json` (`composer stan` / `composer stan:baseline`).
+
+Кеши всех quality-инструментов (CS Fixer, PHPStan, Rector, PHPUnit) лежат в `src/var/`
+и не попадают в Git и Docker-контекст.
+
+### Baseline
+
+Сейчас проект проходит анализ **без ошибок**, поэтому `phpstan-baseline.neon`
+не нужен. Если появятся ошибки, которые нельзя исправить сразу (например,
+из-за магии сторонней библиотеки), можно зафиксировать их:
+
+```bash
+make stan-baseline
+```
+
+Команда создаст `src/phpstan-baseline.neon`; его нужно закоммитить и подключить
+в `src/phpstan.neon.dist`:
+
+```neon
+includes:
+    - phpstan-baseline.neon
+    - vendor/larastan/larastan/extension.neon
+```
+
+Baseline скрывает только уже известные ошибки: новый код проверяется полностью,
+а исправленные записи помечаются как лишние — их следует удалять.
+
+---
+
+## Автоматический рефакторинг
+
+Для массовых изменений кода используется **Rector** (`src/rector.php`).
+Сейчас подключено одно правило — **AddNamedArgumentsRector**: оно расставляет
+именованные аргументы там, где это безопасно.
+
+```bash
+make rector       # dry-run: показать дифф, файлы не меняет
+make rector-fix   # применить изменения
+```
+
+Правило не трогает `vendor`, вызовы с распаковкой (`...$args`), методы,
+которые не удаётся разрешить через рефлексию (магия Eloquent/фасадов),
+и классы/методы с `@no-named-arguments`. Синтетические имена для variadic
+(`values1`, `values2`) отключены.
+
+Рекомендуемый порядок после рефакторинга:
+
+```bash
+make rector-fix
+make cs-fix
+make stan
+make test
+```
+
+> **Важно:** named arguments зависят от имён параметров вызываемого кода.
+> Перед применением просмотрите `make rector`, а нестабильные вызовы сторонних
+> пакетов добавьте в `SKIP_CALLS` в `src/rector.php`. Первый запуск намеренно
+> сделан в режиме dry-run.
+
+Скрипты продублированы в `src/composer.json` (`composer rector` / `composer rector:fix`).
+
+---
+
+## CI (GitLab)
+
+Pipeline описан в `.gitlab-ci.yml` и запускается на **каждый push и merge request**.
+
+Успешный запуск: [pipeline](https://gitlab.com/finesko-group/pizza-shop/-/pipelines/3102454222)
+
+| Stage | Job | Что делает |
+|---|---|---|
+| build | `build:prod` | собирает production-образ из `docker/php/Dockerfile` (target `production`) |
+| build | `build:ci` | собирает development-образ для проверок (Composer + PHP-расширения) |
+| code-quality | `test` | полный PHPUnit suite на PostgreSQL |
+| code-quality | `php-cs-fixer` | `composer cs` (check) |
+| code-quality | `phpstan` | `composer stan` (level 6 + Larastan) |
+| code-quality | `rector` | `composer rector` (dry-run) |
+
+Все quality-jobs независимы: результат каждой проверки виден в одном pipeline,
+падение любой делает pipeline красным. 
+
+Требования к окружению GitLab: включённый **Container Registry** и runner
+с поддержкой Docker-in-Docker (privileged). Секреты в `.env` не коммитятся:
+CI создаёт `src/.env` из `src/.env.example` и генерирует `APP_KEY`.
+
+Образы тегируются по хешу входных файлов (`docker/php/**` для CI-образа,
+`docker/php/** + src/**` для production). Если такой образ уже есть в registry,
+он переиспользуется без пересборки; для новых сборок работает registry-кеш
+слоёв (`cache-ci` / `cache-prod`).
 
 ---
 
@@ -251,7 +384,11 @@ curl -X POST http://127.0.0.1:8080/api/login \
 │   ├── artisan.mk            # shell-dev / shell-prod
 │   ├── test.mk               # тесты
 │   ├── jwt.mk                # jwt-check / jwt-generate
-│   └── misc.mk               # build
+│   ├── misc.mk               # build
+│   ├── cs-fixer.mk           # make cs / cs-fix
+│   ├── phpstan.mk            # make stan / stan-baseline
+│   └── rector.mk             # make rector / rector-fix
+├── .gitlab-ci.yml            # CI: build + test + quality-проверки
 ├── docker-compose.yaml       # база: php-fpm-blue/green, nginx, db
 ├── docker-compose.dev.yaml   # dev: mount src/, Xdebug
 ├── docker-compose.prod.yaml  # prod: multi-stage build
@@ -264,6 +401,9 @@ curl -X POST http://127.0.0.1:8080/api/login \
     ├── app/                  # контроллеры, модели, requests, resources
     ├── routes/api.php        # API-маршруты
     ├── tests/
+    ├── .php-cs-fixer.dist.php # конфиг PHP CS Fixer
+    ├── phpstan.neon.dist     # конфиг PHPStan + Larastan
+    ├── rector.php            # конфиг Rector
     ├── .env.example          # переменные Laravel
     └── storage/database/     # данные dev-БД (bind mount)
 ```

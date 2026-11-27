@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\UserRoleEnum;
@@ -11,25 +13,24 @@ use Illuminate\Support\Str;
 /**
  * @extends Factory<User>
  */
-class UserFactory extends Factory
+final class UserFactory extends Factory
 {
     protected static ?string $password;
 
     public function admin(): static
     {
-        return $this->state(['role' => UserRoleEnum::Admin]);
+        return $this->state(state: ['role' => UserRoleEnum::Admin]);
     }
 
     public function user(): static
     {
-        return $this->state(['role' => UserRoleEnum::User]);
+        return $this->state(state: ['role' => UserRoleEnum::User]);
     }
 
     public function guest(): static
     {
-        return $this->state(['role' => UserRoleEnum::Guest]);
+        return $this->state(state: ['role' => UserRoleEnum::Guest]);
     }
-
 
     public function definition(): array
     {
@@ -37,9 +38,9 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-            'role' => $this->faker->randomElement(UserRoleEnum::cases())
+            'password' => self::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(length: 10),
+            'role' => $this->faker->randomElement(UserRoleEnum::cases()),
         ];
     }
 
@@ -48,7 +49,7 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(state: static fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }

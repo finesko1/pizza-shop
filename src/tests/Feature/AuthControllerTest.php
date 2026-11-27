@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\UserRoleEnum;
@@ -8,12 +10,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\InteractsWithApi;
 use Tests\TestCase;
 
-class AuthControllerTest extends TestCase
+final class AuthControllerTest extends TestCase
 {
-    use InteractsWithApi, RefreshDatabase;
+    use InteractsWithApi;
+    use RefreshDatabase;
 
     // POST /api/auth/register (register)
-    public function test_register_with_correct_credentials(): void
+    public function testRegisterWithCorrectCredentials(): void
     {
         $payload = [
             'name' => 'name',
@@ -29,25 +32,25 @@ class AuthControllerTest extends TestCase
                 'access_token',
                 'token_type',
                 'expires_in',
-                'user' => ['id', 'name', 'email', 'role']
+                'user' => ['id', 'name', 'email', 'role'],
             ])
-            ->assertJsonPath('user.role', UserRoleEnum::Guest->value);
+            ->assertJsonPath(path: 'user.role', expect: UserRoleEnum::Guest->value);
 
-        $this->assertNotEmpty($response->json('access_token'));
+        self::assertNotEmpty($response->json(key: 'access_token'));
 
-        $this->withHeader('Authorization', 'Bearer ' . $response->json('access_token'))
+        $this->withHeader('Authorization', 'Bearer ' . $response->json(key: 'access_token'))
             ->getJson('/api/auth/me')
             ->assertOk()
-            ->assertJsonPath('name', $payload['name'])
-            ->assertJsonPath('email', $payload['email'])
-            ->assertJsonPath('role', UserRoleEnum::Guest->value);
+            ->assertJsonPath(path: 'name', expect: $payload['name'])
+            ->assertJsonPath(path: 'email', expect: $payload['email'])
+            ->assertJsonPath(path: 'role', expect: UserRoleEnum::Guest->value);
 
         $this->postJson('/api/auth/login', [
             'email' => $payload['email'],
             'password' => $payload['password'],
         ])
             ->assertOk()
-            ->assertJsonPath('user.role', UserRoleEnum::Guest->value);
+            ->assertJsonPath(path: 'user.role', expect: UserRoleEnum::Guest->value);
 
         $this->assertDatabaseHas('users', [
             'name' => $payload['name'],
@@ -56,7 +59,7 @@ class AuthControllerTest extends TestCase
         ]);
     }
 
-    public function test_register_with_non_unique_credentials(): void
+    public function testRegisterWithNonUniqueCredentials(): void
     {
         User::create([
             'name' => 'name',
@@ -74,16 +77,16 @@ class AuthControllerTest extends TestCase
         $response = $this->postJson('api/auth/register', $payload);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(errors: ['email']);
     }
 
-    //POST /api/auth/login (login)
-    public function test_login_with_correct_credentials(): void
+    // POST /api/auth/login (login)
+    public function testLoginWithCorrectCredentials(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create(attributes: [
             'name' => 'name',
             'email' => 'email@mail.com',
-            'password' => 'currentpassword'
+            'password' => 'currentpassword',
         ]);
 
         $payload = [
@@ -98,24 +101,24 @@ class AuthControllerTest extends TestCase
                 'access_token',
                 'token_type',
                 'expires_in',
-                'user' => ['id', 'name', 'email', 'role']
+                'user' => ['id', 'name', 'email', 'role'],
             ]);
 
-        $this->assertNotEmpty($response->json('access_token'));
+        self::assertNotEmpty($response->json(key: 'access_token'));
 
-        $this->withHeader('Authorization', 'Bearer ' . $response->json('access_token'))
+        $this->withHeader('Authorization', 'Bearer ' . $response->json(key: 'access_token'))
             ->getJson('/api/auth/me')
             ->assertOk()
-            ->assertJsonPath('name', $user->name)
-            ->assertJsonPath('email', $user->email);
+            ->assertJsonPath(path: 'name', expect: $user->name)
+            ->assertJsonPath(path: 'email', expect: $user->email);
     }
 
-    public function test_login_with_incorrect_credentials(): void
+    public function testLoginWithIncorrectCredentials(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create(attributes: [
             'name' => 'name',
             'email' => 'email@mail.com',
-            'password' => 'currentpassword'
+            'password' => 'currentpassword',
         ]);
 
         $payload = [
@@ -128,7 +131,7 @@ class AuthControllerTest extends TestCase
         $response->assertUnauthorized();
     }
 
-    public function test_refresh_works_with_expired_access_token_within_refresh_ttl(): void
+    public function testRefreshWorksWithExpiredAccessTokenWithinRefreshTtl(): void
     {
         $user = User::factory()->user()->create();
         $oldToken = $this->tokenFor($user);
@@ -146,31 +149,31 @@ class AuthControllerTest extends TestCase
                 'expires_in',
                 'user' => ['id', 'name', 'email', 'role'],
             ])
-            ->assertJsonPath('user.id', $user->id);
+            ->assertJsonPath(path: 'user.id', expect: $user->id);
 
-        $newToken = $response->json('access_token');
+        $newToken = $response->json(key: 'access_token');
 
-        $this->assertNotSame($oldToken, $newToken);
+        self::assertNotSame($oldToken, $newToken);
 
         $this->withToken($newToken)
             ->getJson('/api/auth/me')
             ->assertOk()
-            ->assertJsonPath('id', $user->id);
+            ->assertJsonPath(path: 'id', expect: $user->id);
 
         $this->travelBack();
     }
 
-    public function test_refresh_without_token_returns_401(): void
+    public function testRefreshWithoutTokenReturns401(): void
     {
         $this->postJson('/api/auth/refresh')
             ->assertUnauthorized();
     }
 
-    public function test_refresh_fails_after_refresh_ttl(): void
+    public function testRefreshFailsAfterRefreshTtl(): void
     {
         $token = $this->tokenFor(User::factory()->user()->create());
 
-        $this->travel(20161)->minutes();
+        $this->travel(20_161)->minutes();
 
         $this->withToken($token)
             ->postJson('/api/auth/refresh')
