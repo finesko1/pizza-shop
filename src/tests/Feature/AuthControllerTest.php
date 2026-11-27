@@ -10,9 +10,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\InteractsWithApi;
 use Tests\TestCase;
 
-class AuthControllerTest extends TestCase
+final class AuthControllerTest extends TestCase
 {
-    use InteractsWithApi, RefreshDatabase;
+    use InteractsWithApi;
+    use RefreshDatabase;
 
     // POST /api/auth/register (register)
     public function testRegisterWithCorrectCredentials(): void
@@ -31,9 +32,9 @@ class AuthControllerTest extends TestCase
                 'access_token',
                 'token_type',
                 'expires_in',
-                'user' => ['id', 'name', 'email', 'role']
+                'user' => ['id', 'name', 'email', 'role'],
             ])
-            ->assertJsonPath('user.role', UserRoleEnum::Guest->value);
+            ->assertJsonPath(path: 'user.role', expect: UserRoleEnum::Guest->value);
 
         self::assertNotEmpty($response->json(key: 'access_token'));
 
@@ -49,7 +50,7 @@ class AuthControllerTest extends TestCase
             'password' => $payload['password'],
         ])
             ->assertOk()
-            ->assertJsonPath('user.role', UserRoleEnum::Guest->value);
+            ->assertJsonPath(path: 'user.role', expect: UserRoleEnum::Guest->value);
 
         $this->assertDatabaseHas('users', [
             'name' => $payload['name'],
@@ -130,7 +131,7 @@ class AuthControllerTest extends TestCase
         $response->assertUnauthorized();
     }
 
-    public function test_refresh_works_with_expired_access_token_within_refresh_ttl(): void
+    public function testRefreshWorksWithExpiredAccessTokenWithinRefreshTtl(): void
     {
         $user = User::factory()->user()->create();
         $oldToken = $this->tokenFor($user);
@@ -148,31 +149,31 @@ class AuthControllerTest extends TestCase
                 'expires_in',
                 'user' => ['id', 'name', 'email', 'role'],
             ])
-            ->assertJsonPath('user.id', $user->id);
+            ->assertJsonPath(path: 'user.id', expect: $user->id);
 
-        $newToken = $response->json('access_token');
+        $newToken = $response->json(key: 'access_token');
 
-        $this->assertNotSame($oldToken, $newToken);
+        self::assertNotSame($oldToken, $newToken);
 
         $this->withToken($newToken)
             ->getJson('/api/auth/me')
             ->assertOk()
-            ->assertJsonPath('id', $user->id);
+            ->assertJsonPath(path: 'id', expect: $user->id);
 
         $this->travelBack();
     }
 
-    public function test_refresh_without_token_returns_401(): void
+    public function testRefreshWithoutTokenReturns401(): void
     {
         $this->postJson('/api/auth/refresh')
             ->assertUnauthorized();
     }
 
-    public function test_refresh_fails_after_refresh_ttl(): void
+    public function testRefreshFailsAfterRefreshTtl(): void
     {
         $token = $this->tokenFor(User::factory()->user()->create());
 
-        $this->travel(20161)->minutes();
+        $this->travel(20_161)->minutes();
 
         $this->withToken($token)
             ->postJson('/api/auth/refresh')

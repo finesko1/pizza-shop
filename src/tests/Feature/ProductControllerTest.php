@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\UserRoleEnum;
@@ -151,11 +153,11 @@ final class ProductControllerTest extends TestCase
     }
 
     // POST/PATCH/DELETE /api/products/{product} (update)
-    public function test_guest_without_token_cant_edit_product(): void
+    public function testGuestWithoutTokenCantEditProduct(): void
     {
         $product = Product::factory()->pepperoni()->create();
 
-        $this->postJson("/api/products", ProductPayload::pepperoni())
+        $this->postJson('/api/products', ProductPayload::pepperoni())
             ->assertUnauthorized();
 
         $this->patchJson("/api/products/{$product->id}", ProductPayload::margaritaUpdate())
@@ -203,7 +205,7 @@ final class ProductControllerTest extends TestCase
             ->assertOk();
     }
 
-    public function test_guest_without_token_cant_edit_products_catalog(): void
+    public function testGuestWithoutTokenCantEditProductsCatalog(): void
     {
         $product = Product::factory()->pepperoni()->create();
 

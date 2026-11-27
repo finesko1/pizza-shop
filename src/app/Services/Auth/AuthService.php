@@ -44,7 +44,7 @@ final readonly class AuthService
     {
         $guard = $this->guard();
         $token = $guard->refresh();
-        $guard->setToken($token);
+        $guard->setToken(token: $token);
 
         return $token;
     }

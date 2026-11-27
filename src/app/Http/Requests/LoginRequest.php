@@ -21,6 +21,6 @@ final class LoginRequest extends PublicFormRequest
 
     public function toDTO(): LoginDTO
     {
-        return LoginDTO::fromArray($this->validated());
+        return LoginDTO::fromArray(data: $this->validated());
     }
 }

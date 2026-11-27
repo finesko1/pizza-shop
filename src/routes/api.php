@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('auth')->group(callback: static function () {
+Route::prefix('auth')->group(callback: static function (): void {
     Route::post('login', [AuthController::class, 'login'])
         ->middleware(middleware: 'throttle:5,1');
 
@@ -15,7 +16,7 @@ Route::prefix('auth')->group(callback: static function () {
 });
 
 Route::apiResource('products', ProductController::class)
-    ->only(['index', 'show']);
+    ->only(methods: ['index', 'show']);
 
 Route::middleware('auth:api')->group(callback: static function (): void {
     Route::prefix('auth')->group(callback: static function (): void {
@@ -24,5 +25,5 @@ Route::middleware('auth:api')->group(callback: static function (): void {
     });
 
     Route::apiResource('products', ProductController::class)
-        ->except(['index', 'show']);
+        ->except(methods: ['index', 'show']);
 });

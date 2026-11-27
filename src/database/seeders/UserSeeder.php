@@ -17,7 +17,7 @@ final class UserSeeder extends Seeder
     {
         if (! app()->environment(['local', 'testing'])) {
             $this->command?->warn(
-                'UserSeeder: демонстрационные аккаунты создаются только в local/testing.'
+                'UserSeeder: демонстрационные аккаунты создаются только в local/testing.',
             );
 
             return;
